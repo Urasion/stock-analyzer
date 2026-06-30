@@ -20,6 +20,8 @@ export default function Home() {
   
   // SEC Filings state
   const [filings, setFilings] = useState<Filing[]>([]);
+  const [filing10K, setFiling10K] = useState<Filing | null>(null);
+  const [filingsForm4, setFilingsForm4] = useState<Filing[]>([]);
   const [loadingSec, setLoadingSec] = useState(false);
   const [secError, setSecError] = useState('');
 
@@ -50,6 +52,8 @@ export default function Home() {
     setActiveTicker(queryTicker);
     setSecError('');
     setFilings([]);
+    setFiling10K(null);
+    setFilingsForm4([]);
     setFundamentals(null);
     setActiveFiling(null);
 
@@ -63,6 +67,8 @@ export default function Home() {
       }
       const data = await res.json();
       setFilings(data.filings || []);
+      setFiling10K(data.filing10K || null);
+      setFilingsForm4(data.filingsForm4 || []);
     } catch (err) {
       setSecError(err instanceof Error ? err.message : '공시 조회에 실패했습니다.');
     } finally {
@@ -85,9 +91,25 @@ export default function Home() {
   };
 
   // Trigger AI Analysis
-  const handleAnalyze = (filing: Filing) => {
-    setActiveFiling(filing);
-    submit({ url: filing.url, ticker: activeTicker });
+  const handleAnalyze = (targetFilings: Filing[], target10K: Filing | null, targetForm4: Filing[]) => {
+    if (targetFilings.length === 0) return;
+
+    const virtualFiling: Filing = {
+      accessionNumber: 'combined-analysis',
+      form: 'SEC 종합',
+      filingDate: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+      reportDate: '최근 다각 분석',
+      description: `8-K 수시공시 ${targetFilings.length}건, 10-K 연례보고서 리스크 파트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
+      url: '',
+    };
+
+    setActiveFiling(virtualFiling);
+    submit({ 
+      urls: targetFilings.map(f => f.url), 
+      url10K: target10K ? target10K.url : null,
+      urlsForm4: targetForm4.map(f => f.url),
+      ticker: activeTicker 
+    });
   };
 
   return (
@@ -112,6 +134,8 @@ export default function Home() {
             {/* SEC Filings Card */}
             <FilingList 
               filings={filings}
+              filing10K={filing10K}
+              filingsForm4={filingsForm4}
               loading={loadingSec}
               error={secError}
               activeFiling={activeFiling}

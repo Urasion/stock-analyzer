@@ -19,41 +19,88 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { url, ticker } = await request.json();
+    const { urls, url10K, urlsForm4, ticker } = await request.json();
 
-    if (!url || !ticker) {
+    if (!urls || !Array.isArray(urls) || urls.length === 0 || !ticker) {
       return NextResponse.json(
-        { error: 'Both url and ticker parameters are required in the request body.' },
+        { error: 'Both urls (array) and ticker parameters are required in the request body.' },
         { status: 400 }
       );
     }
 
     const upperTicker = ticker.toUpperCase();
 
-    // 1. Cheerio로 8-K HTML 원문 스크랩 및 텍스트 추출
+    // 1. Cheerio로 8-K, 10-K, Form 4 HTML 스크랩 및 텍스트 병합
     let scrapedText = '';
     try {
-      const htmlResponse = await fetch(url, {
-        headers: {
-          'User-Agent': USER_AGENT,
-        },
-      });
+      // (1) 8-K 수집
+      const fetchAndScrape8K = async (url: string, index: number) => {
+        try {
+          const htmlResponse = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+          if (!htmlResponse.ok) return `[수시공시 8-K ${index + 1}] 가져오기 실패 (Status ${htmlResponse.status})`;
+          const html = await htmlResponse.text();
+          const $ = cheerio.load(html);
+          $('script, style, iframe, noscript, head').remove();
+          const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 4000);
+          return `[수시공시 8-K ${index + 1} 원문 요약]\n${text}`;
+        } catch (err) {
+          return `[수시공시 8-K ${index + 1}] 스크랩 에러: ${err instanceof Error ? err.message : String(err)}`;
+        }
+      };
 
-      if (!htmlResponse.ok) {
-        throw new Error(`Failed to fetch SEC Archives HTML: Status ${htmlResponse.status}`);
-      }
+      // (2) 10-K 리스크 정보 수집
+      const fetchAndScrape10K = async (url: string) => {
+        try {
+          const htmlResponse = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+          if (!htmlResponse.ok) return `[연례보고서 10-K] 리스크 정보 가져오기 실패 (Status ${htmlResponse.status})`;
+          const html = await htmlResponse.text();
+          const $ = cheerio.load(html);
+          $('script, style, iframe, noscript, head').remove();
+          const text = $('body').text().replace(/\s+/g, ' ').trim();
+          const riskIndex = text.search(/Item\s+1A\.?\s+Risk\s+Factors/i);
+          const riskText = riskIndex !== -1 ? text.slice(riskIndex, riskIndex + 6000) : text.slice(0, 6000);
+          return `[연례보고서 10-K 장기 리스크 맥락 (Item 1A 요약)]\n${riskText}`;
+        } catch (err) {
+          return `[연례보고서 10-K] 스크랩 에러: ${err instanceof Error ? err.message : String(err)}`;
+        }
+      };
 
-      const html = await htmlResponse.text();
-      const $ = cheerio.load(html);
+      // (3) Form 4 내부자 거래 정보 수집 (네트워크 오버헤드 최소화를 위해 최근 3개만 수집)
+      const fetchAndScrapeForm4 = async (url: string, index: number) => {
+        try {
+          const htmlResponse = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+          if (!htmlResponse.ok) return `[내부자거래 Form 4 ${index + 1}] 가져오기 실패 (Status ${htmlResponse.status})`;
+          const html = await htmlResponse.text();
+          const $ = cheerio.load(html);
+          $('script, style, iframe, noscript, head').remove();
+          const text = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 1500);
+          return `[내부자거래 Form 4 ${index + 1} 요약]\n${text}`;
+        } catch (err) {
+          return `[내부자거래 Form 4 ${index + 1}] 스크랩 에러: ${err instanceof Error ? err.message : String(err)}`;
+        }
+      };
 
-      // 불필요한 태그 제거 및 텍스트 추출
-      $('script, style, iframe, noscript, head').remove();
-      scrapedText = $('body').text().replace(/\s+/g, ' ').trim().slice(0, 20000);
+      const tasks8K = urls.map((url: string, index: number) => fetchAndScrape8K(url, index));
+      const task10K = url10K ? [fetchAndScrape10K(url10K)] : [];
+      const tasksForm4 = (urlsForm4 || []).slice(0, 3).map((url: string, index: number) => fetchAndScrapeForm4(url, index));
+
+      const [res8K, res10K, resForm4] = await Promise.all([
+        Promise.all(tasks8K),
+        Promise.all(task10K),
+        Promise.all(tasksForm4)
+      ]);
+
+      const parts = [];
+      if (res8K.length > 0) parts.push(res8K.join('\n\n---\n\n'));
+      if (res10K.length > 0) parts.push(res10K[0]);
+      if (resForm4.length > 0) parts.push(resForm4.join('\n\n---\n\n'));
+
+      scrapedText = parts.join('\n\n=================================\n\n');
     } catch (err) {
-      console.error('SEC Scraping error:', err);
+      console.error('SEC Bulk Scraping error:', err);
       const message = err instanceof Error ? err.message : String(err);
       return NextResponse.json(
-        { error: `Failed to scrape SEC 8-K document: ${message}` },
+        { error: `Failed to scrape SEC filings: ${message}` },
         { status: 502 }
       );
     }

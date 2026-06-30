@@ -56,8 +56,12 @@ ${historyLines}
 [2. 새로 발표된 8-K 공시 원문 (New Data)]
 ${truncatedText || '공시 본문 텍스트를 불러오지 못했습니다.'}
 
-[분석 지시사항]
-이번 공시 내용이 과거의 성장 둔화 추세를 반전시킬 수 있을 만큼 강력한지, 
-혹은 현재의 높은 PER을 정당화할 수 있는 수준의 가이던스를 제시했는지 엄격하게 판단하세요.
-`;
+    [분석 지시사항]
+    이번 공시 내용이 과거의 성장 둔화 추세를 반전시킬 수 있을 만큼 강력한지, 
+    혹은 현재의 높은 PER을 정당화할 수 있는 수준의 가이던스를 제시했는지 엄격하게 판단하세요.
+
+    [중요 규칙]
+    - details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 작성해 주세요.
+    - sentiment, managementTone, status와 같은 enum 값은 스키마에 정의된 영문 값(예: 'STRONG BUY', 'Confident', 'Beat' 등)을 그대로 사용해야 합니다.
+    `;
 }

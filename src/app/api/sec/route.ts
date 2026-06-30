@@ -142,31 +142,77 @@ export async function GET(request: NextRequest) {
       url: string;
     }> = [];
 
-    for (let i = 0; i < recent.form.length; i++) {
-      if (recent.form[i] === '8-K') {
-        const accessionNumber = recent.accessionNumber[i];
-        const accessionNumberWithoutDashes = accessionNumber.replace(/-/g, '');
-        const primaryDocument = recent.primaryDocument[i];
-        
-        // URL 조립
-        const url = `https://www.sec.gov/Archives/edgar/data/${cikNum}/${accessionNumberWithoutDashes}/${primaryDocument}`;
+    let filing10K: {
+      accessionNumber: string;
+      filingDate: string;
+      reportDate: string;
+      form: string;
+      description: string;
+      url: string;
+    } | null = null;
 
+    const filingsForm4: Array<{
+      accessionNumber: string;
+      filingDate: string;
+      reportDate: string;
+      form: string;
+      description: string;
+      url: string;
+    }> = [];
+
+    for (let i = 0; i < recent.form.length; i++) {
+      const formType = recent.form[i];
+      const accessionNumber = recent.accessionNumber[i];
+      const accessionNumberWithoutDashes = accessionNumber.replace(/-/g, '');
+      const primaryDocument = recent.primaryDocument[i];
+      
+      const url = `https://www.sec.gov/Archives/edgar/data/${cikNum}/${accessionNumberWithoutDashes}/${primaryDocument}`;
+
+      if (formType === '8-K' && filings.length < 5) {
         filings.push({
           accessionNumber,
           filingDate: recent.filingDate[i],
           reportDate: recent.reportDate[i],
           form: '8-K',
-          description: recent.primaryDocDescription[i] || '8-K',
+          description: recent.primaryDocDescription[i] || '8-K 수시 공시',
           url,
         });
+      }
 
-        if (filings.length === 5) {
-          break;
-        }
+      if (formType === '10-K' && !filing10K) {
+        filing10K = {
+          accessionNumber,
+          filingDate: recent.filingDate[i],
+          reportDate: recent.reportDate[i],
+          form: '10-K',
+          description: recent.primaryDocDescription[i] || '10-K 연례 보고서',
+          url,
+        };
+      }
+
+      if ((formType === '4' || formType === 'Form 4') && filingsForm4.length < 5) {
+        filingsForm4.push({
+          accessionNumber,
+          filingDate: recent.filingDate[i],
+          reportDate: recent.reportDate[i],
+          form: 'Form 4',
+          description: recent.primaryDocDescription[i] || 'Form 4 내부자 거래',
+          url,
+        });
+      }
+
+      if (filings.length === 5 && filing10K !== null && filingsForm4.length === 5) {
+        break;
       }
     }
 
-    return NextResponse.json({ ticker, cik: paddedCik, filings });
+    return NextResponse.json({ 
+      ticker, 
+      cik: paddedCik, 
+      filings, 
+      filing10K, 
+      filingsForm4 
+    });
   } catch (error) {
     console.error('SEC API error:', error);
     const message = error instanceof Error ? error.message : 'Internal Server Error';

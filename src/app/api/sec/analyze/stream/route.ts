@@ -4,6 +4,7 @@ import { google } from '@ai-sdk/google';
 import * as cheerio from 'cheerio';
 import YahooFinance from 'yahoo-finance2';
 import { stockAnalysisSchema } from '@/app/schema';
+import { buildAnalysisPrompt } from '../prompts';
 
 const yahooFinance = new YahooFinance();
 const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
@@ -89,20 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. AI 스트리밍 분석 실행 (streamObject)
-    const prompt = `
-      You are an expert US stock analyst. Analyze the following earnings/announcement from the SEC 8-K document, and fuse it with the historical/market fundamentals data.
-      
-      [Stock Information]
-      Ticker: ${upperTicker}
-      
-      [Market & Historical Fundamentals Data]
-      ${fundamentalsData ? JSON.stringify(fundamentalsData, null, 2) : 'No historical data available.'}
-      
-      [SEC 8-K Document Text (Truncated up to 20,000 characters)]
-      ${scrapedText}
-
-      Please provide a structured analysis response matching the schema.
-    `;
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData as any, scrapedText);
 
     const result = streamObject({
       model: google('gemini-2.5-flash'),

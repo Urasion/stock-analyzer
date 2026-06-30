@@ -8,6 +8,7 @@ const yahooFinance = new YahooFinance();
 const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
 
 import { stockAnalysisSchema } from '@/app/schema';
+import { buildAnalysisPrompt } from './prompts';
 
 export async function POST(request: NextRequest) {
   // 환경변수 체크
@@ -90,20 +91,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. AI 분석 실행 (generateObject)
-    const prompt = `
-      You are an expert stock analyst. Analyze the following US stock earnings/announcement from the SEC 8-K document, and fuse it with the historical/market fundamentals data.
-      
-      [Stock Information]
-      Ticker: ${upperTicker}
-      
-      [Market & Historical Fundamentals Data]
-      ${fundamentalsData ? JSON.stringify(fundamentalsData, null, 2) : 'No historical data available.'}
-      
-      [SEC 8-K Document Text (Truncated up to 20,000 characters)]
-      ${scrapedText}
-
-      Please provide a structured analysis response matching the schema.
-    `;
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData as any, scrapedText);
 
     const { object: analysisResult } = await generateObject({
       model: google('gemini-2.5-flash'),

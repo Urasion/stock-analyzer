@@ -35,13 +35,13 @@ export default function FilingList({
   return (
     <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl">
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
-        <FileText className="w-5 h-5 text-emerald-400" />
+        <FileText className="w-5 h-5 text-blue-400" />
         <h3 className="font-bold text-lg text-slate-100">최근 SEC 8-K 수시 공시</h3>
       </div>
 
       {loading && (
         <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
-          <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
+          <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
           <span className="text-sm font-medium">SEC에서 공시 목록을 불러오는 중...</span>
         </div>
       )}
@@ -67,7 +67,7 @@ export default function FilingList({
               <span className="text-slate-400 font-bold block">연계 분석 대상 (단기 수시공시 외)</span>
               <div className="flex flex-wrap gap-2">
                 {filing10K && (
-                  <span className="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 font-medium">
+                  <span className="px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium">
                     10-K 연례 보고서 (리스크 연계)
                   </span>
                 )}
@@ -93,13 +93,13 @@ export default function FilingList({
                   key={filing.accessionNumber}
                   className={`p-4 rounded-xl border transition-all flex flex-col gap-2.5 ${
                     isAnalyzingCombined
-                      ? 'bg-slate-900/60 border-emerald-500/30'
+                      ? 'bg-slate-900/60 border-blue-500/30'
                       : 'bg-slate-950/40 border-slate-800 hover:border-slate-700/80'
                   }`}
                 >
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
                         {filing.form}
                       </span>
                       <span className="text-[10px] text-slate-500 font-semibold font-mono">공시 {index + 1}</span>
@@ -109,7 +109,7 @@ export default function FilingList({
                       href={filing.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-slate-400 hover:text-emerald-400 flex items-center gap-0.5 transition-colors"
+                      className="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-0.5 transition-colors"
                     >
                       원본 보기 <ArrowUpRight className="w-3.5 h-3.5" />
                     </a>
@@ -133,8 +133,8 @@ export default function FilingList({
             disabled={isAnalyzing}
             className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-2 ${
               isAnalyzing
-                ? 'bg-slate-900 border border-emerald-500/30 text-emerald-400 cursor-default'
-                : 'bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg shadow-emerald-500/10 cursor-pointer disabled:opacity-50'
+                ? 'bg-slate-900 border border-blue-500/30 text-blue-400 cursor-default'
+                : 'bg-blue-600 hover:bg-blue-500 text-slate-950 shadow-lg shadow-blue-500/10 cursor-pointer disabled:opacity-50'
             }`}
           >
             {isAnalyzing ? (

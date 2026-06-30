@@ -91,13 +91,13 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
     <TooltipProvider>
       <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
-          <BarChart3 className="w-5 h-5 text-emerald-400" />
+          <BarChart3 className="w-5 h-5 text-blue-400" />
           <h3 className="font-bold text-lg text-slate-100">{ticker} 기초 재무 데이터</h3>
         </div>
 
         {loading && (
           <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
-            <Loader2 className="w-6 h-6 animate-spin text-emerald-400" />
+            <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
             <span className="text-xs">재무 정보를 불러오는 중...</span>
           </div>
         )}
@@ -182,7 +182,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                   </Tooltip>
                 </div>
                 <span className={`text-lg font-bold flex items-center gap-1 ${
-                  fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? 'text-emerald-400' : 'text-rose-400'
+                  fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? 'text-blue-400' : 'text-rose-400'
                 }`}>
                   {fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
                   {formatPercent(fundamentals.revenueGrowth)}
@@ -221,10 +221,10 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                           <span className="font-bold text-slate-300">{formatQuarterDate(item.date)}</span>
                           <div className="flex items-center gap-4">
                             <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate?.toFixed(2) ?? 'N/A'}</strong></span>
-                            <span className="text-slate-400">실제: <strong className={isBeat ? 'text-emerald-400' : 'text-rose-400'}>{item.actual?.toFixed(2) ?? 'N/A'}</strong></span>
+                            <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual?.toFixed(2) ?? 'N/A'}</strong></span>
                             {item.actual !== null && item.estimate !== null && (
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                isBeat ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'
+                                isBeat ? 'bg-blue-500/10 text-blue-400' : 'bg-rose-500/10 text-rose-400'
                               }`}>
                                 {isBeat ? 'Beat' : 'Miss'}
                               </span>

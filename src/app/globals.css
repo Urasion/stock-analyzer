@@ -1,8 +1,31 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  
+  /* 라이트 모드 가상 색상 맵 */
+  --slate-950: #f1f5f9;
+  --slate-900: #e2e8f0;
+  --slate-800: #cbd5e1;
+  --slate-400: #64748b;
+  --slate-200: #334155;
+  --slate-100: #0f172a;
+}
+
+.dark {
+  --background: #090d16;
+  --foreground: #f8fafc;
+  
+  /* 다크 모드 기존 색상 맵 */
+  --slate-950: #020617;
+  --slate-900: #0f172a;
+  --slate-800: #1e293b;
+  --slate-400: #94a3b8;
+  --slate-200: #e2e8f0;
+  --slate-100: #f8fafc;
 }
 
 @theme inline {
@@ -10,17 +33,19 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  
+  /* Tailwind 색상 테마 오버라이드 */
+  --color-slate-950: var(--slate-950);
+  --color-slate-900: var(--slate-900);
+  --color-slate-800: var(--slate-800);
+  --color-slate-400: var(--slate-400);
+  --color-slate-200: var(--slate-200);
+  --color-slate-100: var(--slate-100);
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }

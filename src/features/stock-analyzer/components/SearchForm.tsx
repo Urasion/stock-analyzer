@@ -17,7 +17,7 @@ export default function SearchForm({ tickerInput, setTickerInput, onSubmit }: Se
         Gemini 3.5 Flash AI를 통해 어닝 서프라이즈 여부와 향후 투자 판단을 스트리밍으로 진단해보세요.
       </p>
 
-      <form onSubmit={onSubmit} className="flex gap-2 p-1.5 rounded-2xl bg-slate-900/50 backdrop-blur-md border border-slate-800/80 shadow-2xl focus-within:border-emerald-500/50 transition-all max-w-lg mx-auto">
+      <form onSubmit={onSubmit} className="flex gap-2 p-1.5 rounded-2xl bg-slate-900/50 backdrop-blur-md border border-slate-800/80 shadow-2xl focus-within:border-blue-500/50 transition-all max-w-lg mx-auto">
         <div className="flex-1 flex items-center px-3 gap-2">
           <Search className="w-5 h-5 text-slate-500" />
           <input
@@ -30,7 +30,7 @@ export default function SearchForm({ tickerInput, setTickerInput, onSubmit }: Se
         </div>
         <button
           type="submit"
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-bold hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-1 text-sm cursor-pointer shadow-lg shadow-emerald-500/10"
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-400 text-slate-950 font-bold hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-1 text-sm cursor-pointer shadow-lg shadow-blue-500/10"
         >
           조회하기
         </button>

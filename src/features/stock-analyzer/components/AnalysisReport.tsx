@@ -42,11 +42,11 @@ export default function AnalysisReport({
       {/* Report Header */}
       <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800/60">
         <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-emerald-400" />
+          <Sparkles className="w-5 h-5 text-blue-400" />
           <h3 className="font-bold text-lg text-slate-100">AI 종합 분석 리포트</h3>
         </div>
         {isAnalyzing && (
-          <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-semibold px-2 py-1 rounded bg-emerald-500/10 border border-emerald-500/20">
+          <div className="flex items-center gap-1.5 text-xs text-blue-400 font-semibold px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20">
             <Loader2 className="w-3.5 h-3.5 animate-spin" />
             실시간 작성 중...
           </div>
@@ -97,7 +97,7 @@ export default function AnalysisReport({
 
           {/* 1. Judgment Block */}
           <div className="p-5 bg-gradient-to-br from-slate-950 to-slate-900 rounded-xl border border-slate-800 flex flex-col gap-4 shadow-inner relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
             
             <div className="flex justify-between items-center flex-wrap gap-3">
               <div>
@@ -105,7 +105,7 @@ export default function AnalysisReport({
                 <div className="flex items-center gap-2">
                   <span className={`text-lg font-extrabold px-3.5 py-1 rounded-full tracking-wider border shadow-md ${
                     analysis?.judgment?.sentiment === 'STRONG BUY' || analysis?.judgment?.sentiment === 'BUY'
-                      ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 shadow-emerald-500/5'
+                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-blue-500/5'
                       : analysis?.judgment?.sentiment === 'STRONG SELL' || analysis?.judgment?.sentiment === 'SELL'
                       ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5'
                       : 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5'
@@ -135,7 +135,7 @@ export default function AnalysisReport({
             {analysis?.judgment?.confidenceScore !== undefined && (
               <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                 <div 
-                  className="bg-gradient-to-r from-emerald-500 to-teal-400 h-1.5 transition-all duration-500" 
+                  className="bg-gradient-to-r from-blue-600 to-sky-400 h-1.5 transition-all duration-500" 
                   style={{ width: `${analysis.judgment.confidenceScore}%` }}
                 ></div>
               </div>
@@ -159,7 +159,7 @@ export default function AnalysisReport({
                 {analysis?.financials?.revenue?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.revenue.status === 'Beat'
-                      ? 'bg-emerald-500/10 text-emerald-400'
+                      ? 'bg-blue-500/10 text-blue-400'
                       : analysis.financials.revenue.status === 'Miss'
                       ? 'bg-rose-500/10 text-rose-400'
                       : 'bg-amber-500/10 text-amber-400'
@@ -173,7 +173,7 @@ export default function AnalysisReport({
                   {analysis?.financials?.revenue?.actual || '집계 중...'}
                 </span>
                 {analysis?.financials?.revenue?.growthYoY && (
-                  <span className="text-xs text-emerald-400 font-medium">
+                  <span className="text-xs text-blue-400 font-medium">
                     (YoY {analysis.financials.revenue.growthYoY})
                   </span>
                 )}
@@ -187,7 +187,7 @@ export default function AnalysisReport({
                 {analysis?.financials?.eps?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.eps.status === 'Beat'
-                      ? 'bg-emerald-500/10 text-emerald-400'
+                      ? 'bg-blue-500/10 text-blue-400'
                       : analysis.financials.eps.status === 'Miss'
                       ? 'bg-rose-500/10 text-rose-400'
                       : 'bg-amber-500/10 text-amber-400'
@@ -209,7 +209,7 @@ export default function AnalysisReport({
               {analysis?.financials?.guidance?.status && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                   analysis.financials.guidance.status === 'Raised'
-                    ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                     : analysis.financials.guidance.status === 'Lowered'
                     ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                     : analysis.financials.guidance.status === 'Maintained'
@@ -229,7 +229,7 @@ export default function AnalysisReport({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Key Drivers */}
             <div className="p-4 bg-slate-950/30 rounded-xl border border-slate-800/50 flex flex-col gap-3">
-              <span className="text-[10px] text-emerald-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[10px] text-blue-400 font-extrabold uppercase tracking-wider flex items-center gap-1.5">
                 <TrendingUp className="w-3.5 h-3.5" />
                 성장 동력 (Key Drivers)
               </span>
@@ -237,7 +237,7 @@ export default function AnalysisReport({
                 {keyDrivers.length > 0 ? (
                   keyDrivers.map((driver: string, i: number) => (
                     <li key={i} className="text-xs text-slate-300 flex items-start gap-1.5 leading-relaxed font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0 mt-0.5" />
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
                       <span>{driver}</span>
                     </li>
                   ))
@@ -271,7 +271,7 @@ export default function AnalysisReport({
           {/* 5. Shareholder Return */}
           {analysis?.context?.shareholderReturn && (
             <div className="p-4 bg-slate-950/60 rounded-xl border border-slate-800/60 flex flex-col gap-1.5">
-              <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
+              <span className="text-[10px] text-sky-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
                 <DollarSign className="w-3.5 h-3.5" />
                 주주 환원 정책 (Shareholder Return)
               </span>

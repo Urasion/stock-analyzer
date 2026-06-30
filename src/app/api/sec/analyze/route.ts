@@ -8,7 +8,7 @@ const yahooFinance = new YahooFinance();
 const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
 
 import { stockAnalysisSchema } from '@/app/schema';
-import { buildAnalysisPrompt } from './prompts';
+import { buildAnalysisPrompt, FundamentalsInput } from './prompts';
 
 export async function POST(request: NextRequest) {
   // 환경변수 체크
@@ -127,7 +127,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 2. 과거 재무 데이터 가져오기 (Fundamentals)
-    let fundamentalsData: Record<string, unknown> | null = null;
+    let fundamentalsData: FundamentalsInput | null = null;
     try {
       const summary = await yahooFinance.quoteSummary(upperTicker, {
         modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics', 'calendarEvents'],
@@ -157,7 +157,7 @@ export async function POST(request: NextRequest) {
         // 다음 분기 가이던스 전망치 평균
         const nextEarningsEstimate = {
           revenueAverage: summary.calendarEvents?.earnings?.revenueAverage ?? null,
-          epsAverage: summary.calendarEvents?.earnings?.epsAverage ?? null,
+          epsAverage: (summary.calendarEvents?.earnings?.epsAverage as number | null) ?? null,
         };
 
         fundamentalsData = {
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. AI 분석 실행 (generateObject)
-    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData as any, scrapedText);
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText);
 
     const { object: analysisResult } = await generateObject({
       model: google('gemini-2.5-flash'),

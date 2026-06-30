@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Antigravity Stock Analyzer",
+  title: "개잡주 판독기",
   description: "Real-Time SEC 8-K AI streaming analysis with 10-K, 10-Q, and Form 4 support",
 };
 

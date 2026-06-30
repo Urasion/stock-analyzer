@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { stockAnalysisSchema } from '@/app/schema';
 
@@ -9,10 +9,11 @@ import Navbar from '@/components/Navbar';
 import SearchForm from '@/features/stock-analyzer/components/SearchForm';
 import FilingList from '@/features/stock-analyzer/components/FilingList';
 import FundamentalsCard from '@/features/stock-analyzer/components/FundamentalsCard';
+import MacroIndicatorsCard from '@/features/stock-analyzer/components/MacroIndicatorsCard';
 import AnalysisReport from '@/features/stock-analyzer/components/AnalysisReport';
 
 // Types
-import { Filing, Fundamentals } from '@/features/stock-analyzer/types';
+import { Filing, Fundamentals, MacroData } from '@/features/stock-analyzer/types';
 
 export default function Home() {
   const [tickerInput, setTickerInput] = useState('');
@@ -30,8 +31,36 @@ export default function Home() {
   const [fundamentals, setFundamentals] = useState<Fundamentals | null>(null);
   const [loadingFundamentals, setLoadingFundamentals] = useState(false);
 
+  // Macro Indicators state (FRED)
+  const [macroData, setMacroData] = useState<MacroData | null>(null);
+  const [loadingMacro, setLoadingMacro] = useState(false);
+  const [macroError, setMacroError] = useState('');
+
   // Active filing state
   const [activeFiling, setActiveFiling] = useState<Filing | null>(null);
+
+  // Fetch Macro Data on mount
+  useEffect(() => {
+    const fetchMacroData = async () => {
+      setLoadingMacro(true);
+      setMacroError('');
+      try {
+        const res = await fetch('/api/market/macro');
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to fetch macro data');
+        }
+        const data = await res.json();
+        setMacroData(data);
+      } catch (err) {
+        console.error('Failed to fetch macro data:', err);
+        setMacroError(err instanceof Error ? err.message : '거시경제 데이터 조회 실패');
+      } finally {
+        setLoadingMacro(false);
+      }
+    };
+    fetchMacroData();
+  }, []);
 
   // Streaming AI Analysis hook
   const { 
@@ -122,7 +151,7 @@ export default function Home() {
       <Navbar />
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="w-full max-w-none mx-auto px-6 md:px-10 py-8">
         {/* Search Header Form */}
         <SearchForm 
           tickerInput={tickerInput} 
@@ -131,11 +160,9 @@ export default function Home() {
         />
 
         {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left Column - Search Results, Filings, Fundamentals */}
-          <div className="lg:col-span-5 flex flex-col gap-8">
-            
-            {/* SEC Filings Card */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+          {/* SEC Filings Card */}
+          <div className="lg:col-span-4 h-full">
             <FilingList 
               filings={filings}
               filing10K={filing10K}
@@ -148,8 +175,10 @@ export default function Home() {
               activeTicker={activeTicker}
               onAnalyze={handleAnalyze}
             />
+          </div>
 
-            {/* Fundamentals Card */}
+          {/* Fundamentals & Macro Indicators Panel */}
+          <div className="lg:col-span-3 h-full flex flex-col gap-6">
             {activeTicker && (
               <FundamentalsCard 
                 ticker={activeTicker}
@@ -157,10 +186,15 @@ export default function Home() {
                 loading={loadingFundamentals}
               />
             )}
+            <MacroIndicatorsCard 
+              macroData={macroData}
+              loading={loadingMacro}
+              error={macroError}
+            />
           </div>
 
-          {/* Right Column - Streaming AI Report */}
-          <div className="lg:col-span-7">
+          {/* Streaming AI Report */}
+          <div className="lg:col-span-5 h-full">
             <AnalysisReport 
               ticker={activeTicker}
               activeFiling={activeFiling}

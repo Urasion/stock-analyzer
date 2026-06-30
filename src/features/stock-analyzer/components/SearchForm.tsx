@@ -9,7 +9,7 @@ interface SearchFormProps {
 export default function SearchForm({ tickerInput, setTickerInput, onSubmit }: SearchFormProps) {
   return (
     <section className="mb-10 text-center max-w-2xl mx-auto">
-      <h2 className="text-3xl font-extrabold tracking-tight mb-3 bg-gradient-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
+      <h2 className="text-3xl font-extrabold tracking-tight mb-3 bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
         미국 상장 기업 어닝 리포트 분석
       </h2>
       <p className="text-slate-400 text-sm mb-6 leading-relaxed">
@@ -30,7 +30,7 @@ export default function SearchForm({ tickerInput, setTickerInput, onSubmit }: Se
         </div>
         <button
           type="submit"
-          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-blue-600 to-sky-400 text-slate-950 font-bold hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-1 text-sm cursor-pointer shadow-lg shadow-blue-500/10"
+          className="px-5 py-2.5 rounded-xl bg-linear-to-r from-blue-600 to-sky-400 text-slate-950 font-bold hover:brightness-110 active:scale-[0.98] transition-all flex items-center gap-1 text-sm cursor-pointer shadow-lg shadow-blue-500/10"
         >
           조회하기
         </button>

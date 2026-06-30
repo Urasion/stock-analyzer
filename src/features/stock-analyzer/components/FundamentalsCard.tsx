@@ -29,7 +29,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
 
   const formatPE = (val: number | null) => {
     if (val === null) return 'N/A';
-    return `${val.toFixed(2)}x`;
+    return `${val.toFixed(2)}배`;
   };
 
   const formatQuarterDate = (dateStr: string): string => {
@@ -89,27 +89,27 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
 
   return (
     <TooltipProvider>
-      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl">
+      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full flex flex-col">
         <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
           <BarChart3 className="w-5 h-5 text-blue-400" />
           <h3 className="font-bold text-lg text-slate-100">{ticker} 기초 재무 데이터</h3>
         </div>
 
         {loading && (
-          <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400">
+          <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 flex-1">
             <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
             <span className="text-xs">재무 정보를 불러오는 중...</span>
           </div>
         )}
 
         {!loading && !fundamentals && (
-          <div className="py-4 text-center text-slate-500 text-xs">
+          <div className="py-4 text-center text-slate-500 text-xs flex-1 flex items-center justify-center">
             재무 데이터를 수집하지 못했습니다. (야후 파이낸스 점검 중)
           </div>
         )}
 
         {!loading && fundamentals && (
-          <div className="flex flex-col gap-6">
+          <div className="flex flex-col gap-6 flex-1">
             {/* Metrics Grid */}
             <div className="grid grid-cols-2 gap-4">
               {/* 현재 PER (Trailing PE) */}
@@ -118,7 +118,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                   <span className="text-slate-400 text-xs font-semibold block">현재 PER (Trailing PE)</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors cursor-help">
+                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
                         <HelpCircle className="w-3 h-3" />
                       </button>
                     </TooltipTrigger>
@@ -136,7 +136,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                   <span className="text-slate-400 text-xs font-semibold block">선행 PER (Forward PE)</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors cursor-help">
+                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
                         <HelpCircle className="w-3 h-3" />
                       </button>
                     </TooltipTrigger>
@@ -154,7 +154,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                   <span className="text-slate-400 text-xs font-semibold block">주가순자산비율 (PBR)</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors cursor-help">
+                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
                         <HelpCircle className="w-3 h-3" />
                       </button>
                     </TooltipTrigger>
@@ -166,13 +166,13 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                 <span className="text-lg font-bold text-slate-100">{formatPE(fundamentals.priceToBook)}</span>
               </div>
 
-              {/* 매출 성장률 (YoY) */}
+              {/* 매출 성장률 (전년 동기 대비) */}
               <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60">
                 <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-slate-400 text-xs font-semibold block">매출 성장률 (YoY)</span>
+                  <span className="text-slate-400 text-xs font-semibold block">매출 성장률 (전년 동기 대비)</span>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors cursor-help">
+                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
                         <HelpCircle className="w-3 h-3" />
                       </button>
                     </TooltipTrigger>
@@ -201,7 +201,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">최근 4분기 EPS 추이</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button type="button" className="text-slate-500 hover:text-slate-300 transition-colors cursor-help">
+                        <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
                           <HelpCircle className="w-3.5 h-3.5" />
                         </button>
                       </TooltipTrigger>
@@ -218,10 +218,10 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                       const isBeat = item.actual !== null && item.estimate !== null && item.actual >= item.estimate;
                       return (
                         <div key={index} className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-lg border border-slate-800/40 text-xs">
-                          <span className="font-bold text-slate-300">{formatQuarterDate(item.date)}</span>
+                          <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
                           <div className="flex items-center gap-4">
-                            <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate?.toFixed(2) ?? 'N/A'}</strong></span>
-                            <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual?.toFixed(2) ?? 'N/A'}</strong></span>
+                            <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : 'N/A'}</strong></span>
+                            <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : 'N/A'}</strong></span>
                             {item.actual !== null && item.estimate !== null && (
                               <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                                 isBeat ? 'bg-blue-500/10 text-blue-400' : 'bg-rose-500/10 text-rose-400'

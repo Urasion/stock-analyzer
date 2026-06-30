@@ -33,34 +33,34 @@ export default function FilingList({
   onAnalyze
 }: FilingListProps) {
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl">
+    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full flex flex-col">
       <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
         <FileText className="w-5 h-5 text-blue-400" />
         <h3 className="font-bold text-lg text-slate-100">최근 SEC 8-K 수시 공시</h3>
       </div>
 
       {loading && (
-        <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400">
+        <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400 flex-1">
           <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
           <span className="text-sm font-medium">SEC에서 공시 목록을 불러오는 중...</span>
         </div>
       )}
 
       {!loading && filings.length === 0 && !error && (
-        <div className="py-12 text-center text-slate-500 text-sm">
+        <div className="py-12 text-center text-slate-500 text-sm flex-1 flex items-center justify-center">
           {activeTicker ? '해당 티커의 최신 8-K 수시 공시를 찾지 못했습니다.' : '티커를 검색하여 공시 리스트를 확인하세요.'}
         </div>
       )}
 
       {error && (
-        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex gap-2">
+        <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex gap-2 flex-1 items-start">
           <AlertOctagon className="w-5 h-5 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
       {!loading && filings.length > 0 && (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 flex-1">
           {/* 연계 분석 대상 요약 상태 노출 */}
           {(filing10K || filing10Q || (filingsForm4 && filingsForm4.length > 0)) && (
             <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/40 flex flex-col gap-2 text-xs">
@@ -131,7 +131,7 @@ export default function FilingList({
           <button
             onClick={() => onAnalyze(filings.slice(0, 5), filing10K, filing10Q, filingsForm4)}
             disabled={isAnalyzing}
-            className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-2 ${
+            className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-auto ${
               isAnalyzing
                 ? 'bg-slate-900 border border-blue-500/30 text-blue-400 cursor-default'
                 : 'bg-blue-600 hover:bg-blue-500 text-slate-950 shadow-lg shadow-blue-500/10 cursor-pointer disabled:opacity-50'

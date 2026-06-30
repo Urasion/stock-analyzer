@@ -5,6 +5,7 @@ import * as cheerio from 'cheerio';
 import YahooFinance from 'yahoo-finance2';
 import { stockAnalysisSchema } from '@/app/schema';
 import { buildAnalysisPrompt, FundamentalsInput } from '../prompts';
+import { getMacroData } from '@/lib/macro';
 
 const yahooFinance = new YahooFinance();
 const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
@@ -173,8 +174,16 @@ export async function POST(request: NextRequest) {
       console.warn('Could not fetch fundamentals data from Yahoo Finance, proceeding with analysis anyway:', err);
     }
 
+    // 2-2. FRED 거시경제 데이터 가져오기
+    let macroData = null;
+    try {
+      macroData = await getMacroData();
+    } catch (err) {
+      console.warn('Could not fetch macro data from FRED, proceeding with analysis:', err);
+    }
+
     // 3. AI 스트리밍 분석 실행 (streamObject)
-    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText);
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText, macroData);
 
     const result = streamObject({
       model: google('gemini-2.5-flash'),

@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { urls, url10K, urlsForm4, ticker } = await request.json();
+    const { urls, url10K, url10Q, urlsForm4, ticker } = await request.json();
 
     if (!urls || !Array.isArray(urls) || urls.length === 0 || !ticker) {
       return NextResponse.json(
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
 
     const upperTicker = ticker.toUpperCase();
 
-    // 1. Cheerio로 8-K, 10-K, Form 4 HTML 스크랩 및 텍스트 병합
+    // 1. Cheerio로 8-K, 10-K, 10-Q, Form 4 HTML 스크랩 및 텍스트 병합
     let scrapedText = '';
     try {
       // (1) 8-K 수집
@@ -65,7 +65,24 @@ export async function POST(request: NextRequest) {
         }
       };
 
-      // (3) Form 4 내부자 거래 정보 수집 (네트워크 오버헤드 최소화를 위해 최근 3개만 수집)
+      // (2-2) 10-Q 분기 보고서 실적 정보 수집
+      const fetchAndScrape10Q = async (url: string) => {
+        try {
+          const htmlResponse = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
+          if (!htmlResponse.ok) return `[분기보고서 10-Q] 연결 손익계산서 가져오기 실패 (Status ${htmlResponse.status})`;
+          const html = await htmlResponse.text();
+          const $ = cheerio.load(html);
+          $('script, style, iframe, noscript, head').remove();
+          const text = $('body').text().replace(/\s+/g, ' ').trim();
+          const statementIndex = text.search(/Statements\s+of\s+Operations/i);
+          const statementText = statementIndex !== -1 ? text.slice(statementIndex, statementIndex + 6000) : text.slice(0, 6000);
+          return `[분기보고서 10-Q 연결손익계산서 맥락]\n${statementText}`;
+        } catch (err) {
+          return `[분기보고서 10-Q] 스크랩 에러: ${err instanceof Error ? err.message : String(err)}`;
+        }
+      };
+
+      // (3) Form 4 내부자 거래 정보 수집 (최근 3개만 수집)
       const fetchAndScrapeForm4 = async (url: string, index: number) => {
         try {
           const htmlResponse = await fetch(url, { headers: { 'User-Agent': USER_AGENT } });
@@ -82,17 +99,20 @@ export async function POST(request: NextRequest) {
 
       const tasks8K = urls.map((url: string, index: number) => fetchAndScrape8K(url, index));
       const task10K = url10K ? [fetchAndScrape10K(url10K)] : [];
+      const task10Q = url10Q ? [fetchAndScrape10Q(url10Q)] : [];
       const tasksForm4 = (urlsForm4 || []).slice(0, 3).map((url: string, index: number) => fetchAndScrapeForm4(url, index));
 
-      const [res8K, res10K, resForm4] = await Promise.all([
+      const [res8K, res10K, res10Q, resForm4] = await Promise.all([
         Promise.all(tasks8K),
         Promise.all(task10K),
+        Promise.all(task10Q),
         Promise.all(tasksForm4)
       ]);
 
       const parts = [];
       if (res8K.length > 0) parts.push(res8K.join('\n\n---\n\n'));
       if (res10K.length > 0) parts.push(res10K[0]);
+      if (res10Q.length > 0) parts.push(res10Q[0]);
       if (resForm4.length > 0) parts.push(resForm4.join('\n\n---\n\n'));
 
       scrapedText = parts.join('\n\n=================================\n\n');
@@ -109,7 +129,7 @@ export async function POST(request: NextRequest) {
     let fundamentalsData: Record<string, unknown> | null = null;
     try {
       const summary = await yahooFinance.quoteSummary(upperTicker, {
-        modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics'],
+        modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics', 'calendarEvents'],
       });
 
       if (summary) {
@@ -117,6 +137,7 @@ export async function POST(request: NextRequest) {
         const forwardPE = summary.summaryDetail?.forwardPE ?? null;
         const priceToBook = summary.defaultKeyStatistics?.priceToBook ?? null;
         const revenueGrowth = summary.financialData?.revenueGrowth ?? null;
+        
         const rawEarnings = summary.earnings?.earningsChart?.quarterly ?? [];
         const epsHistory = rawEarnings.map((item: { date: string; actual?: number; estimate?: number }) => ({
           date: item.date,
@@ -124,12 +145,28 @@ export async function POST(request: NextRequest) {
           estimate: item.estimate ?? null,
         }));
 
+        // 분기별 실제 매출 및 순이익 차트
+        const rawQuarterlyRevenue = summary.earnings?.financialsChart?.quarterly ?? [];
+        const quarterlyRevenue = rawQuarterlyRevenue.map((item: { date: string; revenue?: number; earnings?: number }) => ({
+          date: item.date,
+          revenue: item.revenue ?? null,
+          earnings: item.earnings ?? null,
+        }));
+
+        // 다음 분기 가이던스 전망치 평균
+        const nextEarningsEstimate = {
+          revenueAverage: summary.calendarEvents?.earnings?.revenueAverage ?? null,
+          epsAverage: summary.calendarEvents?.earnings?.epsAverage ?? null,
+        };
+
         fundamentalsData = {
           trailingPE,
           forwardPE,
           priceToBook,
           revenueGrowth,
           epsHistory,
+          quarterlyRevenue,
+          nextEarningsEstimate,
         };
       }
     } catch (err) {

@@ -151,6 +151,15 @@ export async function GET(request: NextRequest) {
       url: string;
     } | null = null;
 
+    let filing10Q: {
+      accessionNumber: string;
+      filingDate: string;
+      reportDate: string;
+      form: string;
+      description: string;
+      url: string;
+    } | null = null;
+
     const filingsForm4: Array<{
       accessionNumber: string;
       filingDate: string;
@@ -190,6 +199,17 @@ export async function GET(request: NextRequest) {
         };
       }
 
+      if (formType === '10-Q' && !filing10Q) {
+        filing10Q = {
+          accessionNumber,
+          filingDate: recent.filingDate[i],
+          reportDate: recent.reportDate[i],
+          form: '10-Q',
+          description: recent.primaryDocDescription[i] || '10-Q 분기 보고서',
+          url,
+        };
+      }
+
       if ((formType === '4' || formType === 'Form 4') && filingsForm4.length < 5) {
         filingsForm4.push({
           accessionNumber,
@@ -201,7 +221,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      if (filings.length === 5 && filing10K !== null && filingsForm4.length === 5) {
+      if (filings.length === 5 && filing10K !== null && filing10Q !== null && filingsForm4.length === 5) {
         break;
       }
     }
@@ -211,6 +231,7 @@ export async function GET(request: NextRequest) {
       cik: paddedCik, 
       filings, 
       filing10K, 
+      filing10Q,
       filingsForm4 
     });
   } catch (error) {

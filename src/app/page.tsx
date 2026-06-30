@@ -21,6 +21,7 @@ export default function Home() {
   // SEC Filings state
   const [filings, setFilings] = useState<Filing[]>([]);
   const [filing10K, setFiling10K] = useState<Filing | null>(null);
+  const [filing10Q, setFiling10Q] = useState<Filing | null>(null);
   const [filingsForm4, setFilingsForm4] = useState<Filing[]>([]);
   const [loadingSec, setLoadingSec] = useState(false);
   const [secError, setSecError] = useState('');
@@ -53,6 +54,7 @@ export default function Home() {
     setSecError('');
     setFilings([]);
     setFiling10K(null);
+    setFiling10Q(null);
     setFilingsForm4([]);
     setFundamentals(null);
     setActiveFiling(null);
@@ -68,6 +70,7 @@ export default function Home() {
       const data = await res.json();
       setFilings(data.filings || []);
       setFiling10K(data.filing10K || null);
+      setFiling10Q(data.filing10Q || null);
       setFilingsForm4(data.filingsForm4 || []);
     } catch (err) {
       setSecError(err instanceof Error ? err.message : '공시 조회에 실패했습니다.');
@@ -91,7 +94,7 @@ export default function Home() {
   };
 
   // Trigger AI Analysis
-  const handleAnalyze = (targetFilings: Filing[], target10K: Filing | null, targetForm4: Filing[]) => {
+  const handleAnalyze = (targetFilings: Filing[], target10K: Filing | null, target10Q: Filing | null, targetForm4: Filing[]) => {
     if (targetFilings.length === 0) return;
 
     const virtualFiling: Filing = {
@@ -99,7 +102,7 @@ export default function Home() {
       form: 'SEC 종합',
       filingDate: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }),
       reportDate: '최근 다각 분석',
-      description: `8-K 수시공시 ${targetFilings.length}건, 10-K 연례보고서 리스크 파트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
+      description: `8-K 수시공시 ${targetFilings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
       url: '',
     };
 
@@ -107,6 +110,7 @@ export default function Home() {
     submit({ 
       urls: targetFilings.map(f => f.url), 
       url10K: target10K ? target10K.url : null,
+      url10Q: target10Q ? target10Q.url : null,
       urlsForm4: targetForm4.map(f => f.url),
       ticker: activeTicker 
     });
@@ -135,6 +139,7 @@ export default function Home() {
             <FilingList 
               filings={filings}
               filing10K={filing10K}
+              filing10Q={filing10Q}
               filingsForm4={filingsForm4}
               loading={loadingSec}
               error={secError}

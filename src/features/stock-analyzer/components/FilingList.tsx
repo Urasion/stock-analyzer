@@ -10,18 +10,20 @@ import {
 interface FilingListProps {
   filings: Filing[];
   filing10K: Filing | null;
+  filing10Q: Filing | null;
   filingsForm4: Filing[];
   loading: boolean;
   error: string;
   activeFiling: Filing | null;
   isAnalyzing: boolean;
   activeTicker: string;
-  onAnalyze: (filings: Filing[], filing10K: Filing | null, filingsForm4: Filing[]) => void;
+  onAnalyze: (filings: Filing[], filing10K: Filing | null, filing10Q: Filing | null, filingsForm4: Filing[]) => void;
 }
 
 export default function FilingList({
   filings,
   filing10K,
+  filing10Q,
   filingsForm4,
   loading,
   error,
@@ -60,13 +62,18 @@ export default function FilingList({
       {!loading && filings.length > 0 && (
         <div className="flex flex-col gap-4">
           {/* 연계 분석 대상 요약 상태 노출 */}
-          {(filing10K || (filingsForm4 && filingsForm4.length > 0)) && (
+          {(filing10K || filing10Q || (filingsForm4 && filingsForm4.length > 0)) && (
             <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/40 flex flex-col gap-2 text-xs">
               <span className="text-slate-400 font-bold block">연계 분석 대상 (단기 수시공시 외)</span>
               <div className="flex flex-wrap gap-2">
                 {filing10K && (
                   <span className="px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20 font-medium">
-                    10-K 연례 보고서 (리스크 파트 연계)
+                    10-K 연례 보고서 (리스크 연계)
+                  </span>
+                )}
+                {filing10Q && (
+                  <span className="px-2 py-0.5 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-medium">
+                    10-Q 분기 보고서 (실적 연계)
                   </span>
                 )}
                 {filingsForm4 && filingsForm4.length > 0 && (
@@ -122,7 +129,7 @@ export default function FilingList({
           </div>
 
           <button
-            onClick={() => onAnalyze(filings.slice(0, 5), filing10K, filingsForm4)}
+            onClick={() => onAnalyze(filings.slice(0, 5), filing10K, filing10Q, filingsForm4)}
             disabled={isAnalyzing}
             className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-2 ${
               isAnalyzing
@@ -133,12 +140,12 @@ export default function FilingList({
             {isAnalyzing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                8-K + 10-K + Form 4 종합 분석 중...
+                8-K + 10-K/Q + Form 4 종합 분석 중...
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                최근 5개 8-K + 10-K 리스크 + Form 4 종합 분석
+                최근 5개 8-K + 10-K/Q + Form 4 종합 분석
               </>
             )}
           </button>

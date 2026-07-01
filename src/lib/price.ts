@@ -7,6 +7,11 @@ export interface PriceQuote {
   close: number;
 }
 
+export interface YahooFinanceQuote {
+  date: Date | string | number;
+  close: number | null | undefined;
+}
+
 export interface PriceMetrics {
   currentPrice: number | null;
   changePercent: number | null;
@@ -36,8 +41,8 @@ export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetric
     }
 
     const quotes: PriceQuote[] = chartResult.quotes
-      .filter((q: any) => q.close !== undefined && q.close !== null)
-      .map((q: any): PriceQuote => {
+      .filter((q: YahooFinanceQuote) => q.close !== undefined && q.close !== null)
+      .map((q: YahooFinanceQuote): PriceQuote => {
         let dateStr = '';
         if (q.date instanceof Date) {
           dateStr = q.date.toISOString().split('T')[0];
@@ -46,7 +51,7 @@ export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetric
         }
         return {
           date: dateStr,
-          close: Number(q.close.toFixed(2)),
+          close: Number((q.close ?? 0).toFixed(2)),
         };
       });
 
@@ -132,7 +137,7 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
     }
 
     // 1D의 경우, 마지막 거래일 하루치의 intraday 데이터만 추출하여 보여주는 것이 가장 정확함
-    let rawQuotes = chartResult.quotes.filter((q: any) => q.close !== undefined && q.close !== null);
+    let rawQuotes = chartResult.quotes.filter((q: YahooFinanceQuote) => q.close !== undefined && q.close !== null);
 
     if (normalizedRange === '1D' && rawQuotes.length > 0) {
       const lastQuote = rawQuotes[rawQuotes.length - 1];
@@ -140,13 +145,13 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
       const lastTradingDayStr = lastQuoteDate.toISOString().split('T')[0];
 
       // 마지막 영업일의 데이터만 필터링
-      rawQuotes = rawQuotes.filter((q: any) => {
+      rawQuotes = rawQuotes.filter((q: YahooFinanceQuote) => {
         const d = q.date instanceof Date ? q.date : new Date(q.date);
         return d.toISOString().split('T')[0] === lastTradingDayStr;
       });
     }
 
-    const quotes: PriceQuote[] = rawQuotes.map((q: any): PriceQuote => {
+    const quotes: PriceQuote[] = rawQuotes.map((q: YahooFinanceQuote): PriceQuote => {
       let dateStr = '';
       if (q.date instanceof Date) {
         dateStr = q.date.toISOString();
@@ -155,7 +160,7 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
       }
       return {
         date: dateStr,
-        close: Number(q.close.toFixed(2)),
+        close: Number((q.close ?? 0).toFixed(2)),
       };
     });
 

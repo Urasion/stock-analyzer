@@ -17,9 +17,14 @@ export interface MacroData {
   unemploymentRate: MacroIndicator;
 }
 
+export interface FredObservation {
+  date: string;
+  value: string;
+}
+
 const FRED_API_BASE = 'https://api.stlouisfed.org/fred';
 
-async function fetchFredSeries(seriesId: string, limit = 5): Promise<any[]> {
+async function fetchFredSeries(seriesId: string, limit = 5): Promise<FredObservation[]> {
   const apiKey = process.env.FRED_API_KEY;
   if (!apiKey) {
     throw new Error('FRED_API_KEY is not defined in environment variables.');
@@ -37,7 +42,7 @@ async function fetchFredSeries(seriesId: string, limit = 5): Promise<any[]> {
 }
 
 // Helper to filter out "." values (holiday placeholders in daily data) and parse numbers
-function getValidObservations(observations: any[]): { date: string; value: number }[] {
+function getValidObservations(observations: FredObservation[]): { date: string; value: number }[] {
   return observations
     .filter(obs => obs.value !== '.' && obs.value !== undefined && obs.value !== null)
     .map(obs => ({

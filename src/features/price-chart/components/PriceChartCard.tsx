@@ -25,7 +25,7 @@ export default function PriceChartCard({
   onRangeChange,
 }: PriceChartCardProps): React.JSX.Element {
   // Format XAxis ticks based on range
-  const formatXAxis = (tickStr: any): string => {
+  const formatXAxis = (tickStr: string | number): string => {
     try {
       if (!tickStr) return '';
       const date = new Date(tickStr);
@@ -43,15 +43,17 @@ export default function PriceChartCard({
       const year = String(date.getFullYear()).substring(2);
       const month = String(date.getMonth() + 1).padStart(2, '0');
       return `${year}.${month}`;
-    } catch (e) {
+    } catch {
       return String(tickStr || '');
     }
   };
 
   // Format Tooltip label (date/time)
-  const formatTooltipLabel = (labelStr: any): string => {
+  const formatTooltipLabel = (labelStr: React.ReactNode): React.ReactNode => {
     try {
-      if (!labelStr) return '';
+      if (typeof labelStr !== 'string' && typeof labelStr !== 'number') {
+        return labelStr;
+      }
       const date = new Date(labelStr);
       if (range === '1D') {
         const hours = String(date.getHours()).padStart(2, '0');
@@ -59,8 +61,8 @@ export default function PriceChartCard({
         return `${date.toLocaleDateString('ko-KR')} ${hours}:${minutes}`;
       }
       return date.toLocaleDateString('ko-KR');
-    } catch (e) {
-      return String(labelStr || '');
+    } catch {
+      return labelStr;
     }
   };
 
@@ -175,7 +177,12 @@ export default function PriceChartCard({
                     padding: "8px",
                   }}
                   labelFormatter={formatTooltipLabel}
-                  formatter={(value: any) => [`$${Number(value).toFixed(2)}`, "종가"]}
+                  formatter={(value: unknown) => {
+                    if (typeof value === 'number' || typeof value === 'string') {
+                      return [`$${Number(value).toFixed(2)}`, '종가'];
+                    }
+                    return ['', '종가'];
+                  }}
                 />
                 <Area 
                   type="monotone" 

@@ -14,7 +14,7 @@ export const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(
         const childProps = child.props as { value?: string };
         const itemValue = childProps.value;
         const isPressed = value === itemValue;
-        return React.cloneElement(child as React.ReactElement<any>, {
+        return React.cloneElement(child as React.ReactElement<{ value?: string; pressed?: boolean; onPressedChange?: () => void }>, {
           pressed: isPressed,
           onPressedChange: () => {
             if (itemValue && onValueChange) {

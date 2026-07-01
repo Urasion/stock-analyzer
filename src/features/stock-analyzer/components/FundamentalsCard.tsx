@@ -5,15 +5,11 @@ import {
   BarChart3, 
   Loader2, 
   TrendingUp, 
-  TrendingDown,
-  HelpCircle
+  TrendingDown
 } from 'lucide-react';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import CardWrapper from '@/components/CardWrapper';
+import MetricItem from '@/components/MetricItem';
+import InfoTooltip from '@/components/InfoTooltip';
 
 interface FundamentalsCardProps {
   ticker: string;
@@ -88,107 +84,62 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
   };
 
   return (
-    <TooltipProvider>
-      <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full flex flex-col">
-        <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
-          <BarChart3 className="w-5 h-5 text-blue-400" />
-          <h3 className="font-bold text-lg text-slate-100">{ticker} 기초 재무 데이터</h3>
+    <CardWrapper
+      title={`${ticker} 기초 재무 데이터`}
+      icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
+    >
+      {loading && (
+        <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 flex-1">
+          <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+          <span className="text-xs">재무 정보를 불러오는 중...</span>
         </div>
+      )}
 
-        {loading && (
-          <div className="py-8 flex flex-col items-center justify-center gap-2 text-slate-400 flex-1">
-            <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
-            <span className="text-xs">재무 정보를 불러오는 중...</span>
-          </div>
-        )}
+      {!loading && !fundamentals && (
+        <div className="py-4 text-center text-slate-500 text-xs flex-1 flex items-center justify-center">
+          재무 데이터를 수집하지 못했습니다. (야후 파이낸스 점검 중)
+        </div>
+      )}
 
-        {!loading && !fundamentals && (
-          <div className="py-4 text-center text-slate-500 text-xs flex-1 flex items-center justify-center">
-            재무 데이터를 수집하지 못했습니다. (야후 파이낸스 점검 중)
-          </div>
-        )}
+      {!loading && fundamentals && (
+        <div className="flex flex-col gap-6 flex-1">
+          {/* Metrics Grid */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* 현재 PER (Trailing PE) */}
+            <MetricItem
+              label="현재 PER (Trailing PE)"
+              value={formatPE(fundamentals.trailingPE)}
+              tooltipContent="최근 12개월 동안 발표된 실제 주당순이익(EPS)을 기준으로 계산한 주가수익비율입니다. 현재 주가가 기업의 실제 수익력 대비 몇 배 수준인지 보여줍니다."
+            />
 
-        {!loading && fundamentals && (
-          <div className="flex flex-col gap-6 flex-1">
-            {/* Metrics Grid */}
-            <div className="grid grid-cols-2 gap-4">
-              {/* 현재 PER (Trailing PE) */}
-              <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-slate-400 text-xs font-semibold block">현재 PER (Trailing PE)</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
-                        <HelpCircle className="w-3 h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px] leading-relaxed">
-                      <p>최근 12개월 동안 발표된 실제 주당순이익(EPS)을 기준으로 계산한 주가수익비율입니다. 현재 주가가 기업의 실제 수익력 대비 몇 배 수준인지 보여줍니다.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <span className="text-lg font-bold text-slate-100">{formatPE(fundamentals.trailingPE)}</span>
-              </div>
+            {/* 선행 PER (Forward PE) */}
+            <MetricItem
+              label="선행 PER (Forward PE)"
+              value={formatPE(fundamentals.forwardPE)}
+              tooltipContent="향후 12개월 동안의 예상 주당순이익(EPS)을 기준으로 계산한 주가수익비율입니다. 미래의 이익 성장 전망치 대비 주가 수준을 평가할 때 사용됩니다."
+            />
 
-              {/* 선행 PER (Forward PE) */}
-              <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-slate-400 text-xs font-semibold block">선행 PER (Forward PE)</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
-                        <HelpCircle className="w-3 h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px] leading-relaxed">
-                      <p>향후 12개월 동안의 예상 주당순이익(EPS)을 기준으로 계산한 주가수익비율입니다. 미래의 이익 성장 전망치 대비 주가 수준을 평가할 때 사용됩니다.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <span className="text-lg font-bold text-slate-100">{formatPE(fundamentals.forwardPE)}</span>
-              </div>
+            {/* 주가순자산비율 (PBR) */}
+            <MetricItem
+              label="주가순자산비율 (PBR)"
+              value={formatPE(fundamentals.priceToBook)}
+              tooltipContent="주가를 주당순자산가치(BPS)로 나눈 비율입니다. 기업의 자산가치(청산가치) 대비 주가가 어떻게 평가받고 있는지 나타냅니다."
+            />
 
-              {/* 주가순자산비율 (PBR) */}
-              <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-slate-400 text-xs font-semibold block">주가순자산비율 (PBR)</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
-                        <HelpCircle className="w-3 h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px] leading-relaxed">
-                      <p>주가를 주당순자산가치(BPS)로 나눈 비율입니다. 기업의 자산가치(청산가치) 대비 주가가 어떻게 평가받고 있는지 나타냅니다.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <span className="text-lg font-bold text-slate-100">{formatPE(fundamentals.priceToBook)}</span>
-              </div>
-
-              {/* 매출 성장률 (전년 동기 대비) */}
-              <div className="p-3.5 bg-slate-950/60 rounded-xl border border-slate-800/60">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <span className="text-slate-400 text-xs font-semibold block">매출 성장률 (전년 동기 대비)</span>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
-                        <HelpCircle className="w-3 h-3" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent className="max-w-[220px] leading-relaxed">
-                      <p>전년 동기 대비 최근 분기의 매출 성장 비율입니다. 기업의 외형적인 비즈니스 규모가 성장하는 속도를 나타냅니다.</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <span className={`text-lg font-bold flex items-center gap-1 ${
+            {/* 매출 성장률 (전년 동기 대비) */}
+            <MetricItem
+              label="매출 성장률 (전년 동기 대비)"
+              value={
+                <span className={`flex items-center gap-1 ${
                   fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? 'text-blue-400' : 'text-rose-400'
                 }`}>
                   {fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
                   {formatPercent(fundamentals.revenueGrowth)}
                 </span>
-              </div>
-            </div>
+              }
+              tooltipContent="전년 동기 대비 최근 분기의 매출 성장 비율입니다. 기업의 외형적인 비즈니스 규모가 성장하는 속도를 나타냅니다."
+            />
+          </div>
 
             {/* EPS History Chart */}
             {fundamentals.epsHistory && fundamentals.epsHistory.length > 0 && (() => {
@@ -199,19 +150,16 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
                 <div>
                   <div className="flex items-center gap-1.5 mb-3">
                     <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">최근 4분기 EPS 추이</span>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button type="button" className="text-slate-500 hover:text-slate-200 transition-colors cursor-help">
-                          <HelpCircle className="w-3.5 h-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-[260px] leading-relaxed">
-                        <p><strong>EPS (주당순이익)</strong></p>
-                        <p className="mt-1 text-[11px] text-slate-400">
-                          기업이 벌어들인 순이익을 유통주식수로 나눈 값으로, 1주당 얼마의 이익을 창출했는지를 나타내는 지표입니다.
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <InfoTooltip
+                      content={
+                        <>
+                          <strong>EPS (주당순이익)</strong>
+                          <p className="mt-1 text-[11px] text-slate-400">
+                            기업이 벌어들인 순이익을 유통주식수로 나눈 값으로, 1주당 얼마의 이익을 창출했는지를 나타내는 지표입니다.
+                          </p>
+                        </>
+                      }
+                    />
                   </div>
                   <div className="flex flex-col gap-3">
                     {sortedEpsHistory.map((item, index) => {
@@ -239,7 +187,6 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
             })()}
           </div>
         )}
-      </div>
-    </TooltipProvider>
+    </CardWrapper>
   );
 }

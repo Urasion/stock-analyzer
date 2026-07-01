@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { z } from 'zod';
 import { stockAnalysisSchema } from '@/app/schema';
+import CardWrapper from '@/components/CardWrapper';
 
 const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
   if (!revStr) return '집계 중...';
@@ -54,20 +55,17 @@ export default function AnalysisReport({
   const riskFactors = (analysis?.context?.riskFactors ?? []).filter((r): r is string => typeof r === 'string');
 
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full min-h-[550px] flex flex-col">
-      {/* Report Header */}
-      <div className="flex items-center justify-between mb-6 pb-3 border-b border-slate-800/60">
-        <div className="flex items-center gap-2">
-          <Sparkles className="w-5 h-5 text-blue-400" />
-          <h3 className="font-bold text-lg text-slate-100">AI 종합 분석 리포트</h3>
+    <CardWrapper
+      title="AI 종합 분석 리포트"
+      icon={<Sparkles className="w-5 h-5 text-blue-400" />}
+      className="min-h-[550px]"
+      headerRight={isAnalyzing && (
+        <div className="flex items-center gap-1.5 text-xs text-blue-400 font-semibold px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20">
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          실시간 작성 중...
         </div>
-        {isAnalyzing && (
-          <div className="flex items-center gap-1.5 text-xs text-blue-400 font-semibold px-2 py-1 rounded bg-blue-500/10 border border-blue-500/20">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            실시간 작성 중...
-          </div>
-        )}
-      </div>
+      )}
+    >
 
       {/* Error alert */}
       {error && (
@@ -307,6 +305,6 @@ export default function AnalysisReport({
 
         </div>
       )}
-    </div>
+    </CardWrapper>
   );
 }

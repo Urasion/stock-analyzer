@@ -10,7 +10,10 @@ export function ThemeToggle() {
 
   // Hydration mismatch 방지
   React.useEffect(() => {
-    setMounted(true);
+    const handle = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+    return () => cancelAnimationFrame(handle);
   }, []);
 
   if (!mounted) {

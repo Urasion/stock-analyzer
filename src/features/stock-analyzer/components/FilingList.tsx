@@ -6,6 +6,7 @@ import {
   ArrowUpRight, 
   Sparkles 
 } from 'lucide-react';
+import CardWrapper from '@/components/CardWrapper';
 
 interface FilingListProps {
   filings: Filing[];
@@ -33,11 +34,10 @@ export default function FilingList({
   onAnalyze
 }: FilingListProps) {
   return (
-    <div className="bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-4 pb-3 border-b border-slate-800/60">
-        <FileText className="w-5 h-5 text-blue-400" />
-        <h3 className="font-bold text-lg text-slate-100">최근 SEC 8-K 수시 공시</h3>
-      </div>
+    <CardWrapper
+      title="최근 SEC 8-K 수시 공시"
+      icon={<FileText className="w-5 h-5 text-blue-400" />}
+    >
 
       {loading && (
         <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400 flex-1">
@@ -151,6 +151,6 @@ export default function FilingList({
           </button>
         </div>
       )}
-    </div>
+    </CardWrapper>
   );
 }

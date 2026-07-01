@@ -1,12 +1,20 @@
 "use client";
 
-import { Fundamentals } from '../types';
+import { Fundamentals, PriceMetrics } from '../types';
 import { 
   BarChart3, 
   Loader2, 
   TrendingUp, 
   TrendingDown
 } from 'lucide-react';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip as ChartTooltip,
+} from 'recharts';
 import CardWrapper from '@/components/CardWrapper';
 import MetricItem from '@/components/MetricItem';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -14,10 +22,16 @@ import InfoTooltip from '@/components/InfoTooltip';
 interface FundamentalsCardProps {
   ticker: string;
   fundamentals: Fundamentals | null;
+  priceMetrics: PriceMetrics | null;
   loading: boolean;
 }
 
-export default function FundamentalsCard({ ticker, fundamentals, loading }: FundamentalsCardProps) {
+export default function FundamentalsCard({ 
+  ticker, 
+  fundamentals, 
+  priceMetrics, 
+  loading 
+}: FundamentalsCardProps) {
   const formatPercent = (val: number | null) => {
     if (val === null) return 'N/A';
     return `${(val * 100).toFixed(1)}%`;
@@ -113,9 +127,9 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
       )}
 
       {!loading && ticker && fundamentals && (
-        <div className="flex flex-col gap-6 flex-1">
+        <div className="flex flex-col gap-5 flex-1">
           {/* Metrics Grid */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-3.5">
             {/* 현재 PER (Trailing PE) */}
             <MetricItem
               label="현재 PER (Trailing PE)"
@@ -152,52 +166,141 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
             />
           </div>
 
-            {/* EPS History Chart */}
-            {fundamentals.epsHistory && fundamentals.epsHistory.length > 0 && (() => {
-              const sortedEpsHistory = [...fundamentals.epsHistory].sort(
-                (a, b) => getSortScore(b.date) - getSortScore(a.date)
-              );
-              return (
-                <div>
-                  <div className="flex items-center gap-1.5 mb-3">
-                    <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">최근 4분기 EPS 추이</span>
-                    <InfoTooltip
-                      content={
-                        <>
-                          <strong>EPS (주당순이익)</strong>
-                          <p className="mt-1 text-[11px] text-slate-400">
-                            기업이 벌어들인 순이익을 유통주식수로 나눈 값으로, 1주당 얼마의 이익을 창출했는지를 나타내는 지표입니다.
-                          </p>
-                        </>
-                      }
-                    />
-                  </div>
-                  <div className="flex flex-col gap-3">
-                    {sortedEpsHistory.map((item, index) => {
-                      const isBeat = item.actual !== null && item.estimate !== null && item.actual >= item.estimate;
-                      return (
-                        <div key={index} className="flex justify-between items-center bg-slate-950/30 p-2.5 rounded-lg border border-slate-800/40 text-xs">
-                          <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
-                          <div className="flex items-center gap-4">
-                            <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : 'N/A'}</strong></span>
-                            <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : 'N/A'}</strong></span>
-                            {item.actual !== null && item.estimate !== null && (
-                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                isBeat ? 'bg-blue-500/10 text-blue-400' : 'bg-rose-500/10 text-rose-400'
-                              }`}>
-                                {isBeat ? 'Beat' : 'Miss'}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
+          {/* Price Metrics Summary Grid */}
+          {priceMetrics && (
+            <div className="grid grid-cols-3 gap-2 bg-slate-950/20 p-3 rounded-xl border border-slate-900/50">
+              <div className="flex flex-col gap-0.5">
+                <span className="text-[10px] text-slate-500 font-bold uppercase">현재 주가</span>
+                <div className="flex items-baseline gap-1 flex-wrap">
+                  <span className="text-xs font-bold text-slate-200">${priceMetrics.currentPrice}</span>
+                  {priceMetrics.changePercent !== null && (
+                    <span className={`text-[9px] font-bold ${priceMetrics.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
+                      ({priceMetrics.changePercent >= 0 ? '+' : ''}{priceMetrics.changePercent}%)
+                    </span>
+                  )}
                 </div>
-              );
-            })()}
-          </div>
-        )}
+              </div>
+
+              <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
+                <span className="text-[10px] text-slate-500 font-bold uppercase">30일 최고/최저</span>
+                <span className="text-[10px] font-bold text-slate-300">
+                  ${priceMetrics.high30d} / ${priceMetrics.low30d}
+                </span>
+              </div>
+
+              <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
+                <div className="flex items-center gap-0.5">
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">30일 변동성</span>
+                  <InfoTooltip content="최근 30일 일일 종가의 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 주가 널뛰기가 심한 고위험 종목임을 나타냅니다." />
+                </div>
+                <span className="text-[10px] font-bold text-slate-300">
+                  {priceMetrics.volatility30d}%
+                </span>
+              </div>
+            </div>
+          )}
+
+          {/* 30-Day Price Chart */}
+          {priceMetrics && priceMetrics.quotes && priceMetrics.quotes.length > 0 && (
+            <div className="flex flex-col">
+              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">최근 30일 주가 추이</span>
+              <div className="h-28 w-full bg-slate-950/10 rounded-xl border border-slate-900/60 p-1.5 overflow-hidden">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={priceMetrics.quotes} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(tick) => {
+                        const parts = tick.split('-');
+                        return parts.length === 3 ? `${parts[1]}.${parts[2]}` : tick;
+                      }}
+                      tick={{ fontSize: 8, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      domain={['auto', 'auto']} 
+                      tick={{ fontSize: 8, fill: '#64748b' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <ChartTooltip
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(15, 23, 42, 0.95)', 
+                        borderColor: '#1e293b', 
+                        borderRadius: '6px',
+                        fontSize: '10px',
+                        color: '#e2e8f0',
+                        padding: '6px'
+                      }}
+                      labelFormatter={(label) => `날짜: ${label}`}
+                      formatter={(value: any) => [`$${Number(value).toFixed(2)}`, '종가']}
+                    />
+                    <Area 
+                      type="monotone" 
+                      dataKey="close" 
+                      stroke="#3b82f6" 
+                      strokeWidth={1.5}
+                      fillOpacity={1} 
+                      fill="url(#priceGradient)" 
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          )}
+
+          {/* EPS History Chart */}
+          {fundamentals.epsHistory && fundamentals.epsHistory.length > 0 && (() => {
+            const sortedEpsHistory = [...fundamentals.epsHistory].sort(
+              (a, b) => getSortScore(b.date) - getSortScore(a.date)
+            );
+            return (
+              <div>
+                <div className="flex items-center gap-1.5 mb-2.5">
+                  <span className="text-slate-400 text-xs font-bold uppercase tracking-wider">최근 4분기 EPS 추이</span>
+                  <InfoTooltip
+                    content={
+                      <>
+                        <strong>EPS (주당순이익)</strong>
+                        <p className="mt-1 text-[11px] text-slate-400">
+                          기업이 벌어들인 순이익을 유통주식수로 나눈 값으로, 1주당 얼마의 이익을 창출했는지를 나타내는 지표입니다.
+                        </p>
+                      </>
+                    }
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  {sortedEpsHistory.map((item, index) => {
+                    const isBeat = item.actual !== null && item.estimate !== null && item.actual >= item.estimate;
+                    return (
+                      <div key={index} className="flex justify-between items-center bg-slate-950/30 p-2 rounded-lg border border-slate-800/40 text-[11px]">
+                        <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : 'N/A'}</strong></span>
+                          <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : 'N/A'}</strong></span>
+                          {item.actual !== null && item.estimate !== null && (
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                              isBeat ? 'bg-blue-500/10 text-blue-400' : 'bg-rose-500/10 text-rose-400'
+                            }`}>
+                              {isBeat ? 'Beat' : 'Miss'}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      )}
     </CardWrapper>
   );
 }

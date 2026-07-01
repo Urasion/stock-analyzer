@@ -6,6 +6,7 @@ import YahooFinance from 'yahoo-finance2';
 import { stockAnalysisSchema } from '@/app/schema';
 import { buildAnalysisPrompt, FundamentalsInput } from '../prompts';
 import { getMacroData } from '@/lib/macro';
+import { get30DayPriceMetrics } from '@/lib/price';
 
 const yahooFinance = new YahooFinance();
 const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
@@ -126,12 +127,31 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 2. 과거 재무 데이터 가져오기 (Fundamentals)
+    // 2. 외부 데이터 수집 (Fundamentals, Price Metrics, Macro Data) 병렬 비동기 처리
     let fundamentalsData: FundamentalsInput | null = null;
+    let priceMetricsData = null;
+    let macroData = null;
+
     try {
-      const summary = await yahooFinance.quoteSummary(upperTicker, {
-        modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics', 'calendarEvents'],
-      });
+      const [summary, priceMetrics, macro] = await Promise.all([
+        yahooFinance.quoteSummary(upperTicker, {
+          modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics', 'calendarEvents'],
+        }).catch(err => {
+          console.warn('Could not fetch quote summary:', err);
+          return null;
+        }),
+        get30DayPriceMetrics(upperTicker).catch(err => {
+          console.warn('Could not fetch price metrics:', err);
+          return null;
+        }),
+        getMacroData().catch(err => {
+          console.warn('Could not fetch macro data:', err);
+          return null;
+        })
+      ]);
+
+      macroData = macro;
+      priceMetricsData = priceMetrics;
 
       if (summary) {
         const trailingPE = summary.summaryDetail?.trailingPE ?? null;
@@ -171,19 +191,11 @@ export async function POST(request: NextRequest) {
         };
       }
     } catch (err) {
-      console.warn('Could not fetch fundamentals data from Yahoo Finance, proceeding with analysis anyway:', err);
-    }
-
-    // 2-2. FRED 거시경제 데이터 가져오기
-    let macroData = null;
-    try {
-      macroData = await getMacroData();
-    } catch (err) {
-      console.warn('Could not fetch macro data from FRED, proceeding with analysis:', err);
+      console.warn('Error fetching parallel data, proceeding with analysis:', err);
     }
 
     // 3. AI 스트리밍 분석 실행 (streamObject)
-    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText, macroData);
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText, macroData, priceMetricsData);
 
     const result = streamObject({
       model: google('gemini-2.5-flash'),

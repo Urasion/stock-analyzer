@@ -13,7 +13,7 @@ import MacroIndicatorsCard from '@/features/stock-analyzer/components/MacroIndic
 import AnalysisReport from '@/features/stock-analyzer/components/AnalysisReport';
 
 // Types
-import { Filing, Fundamentals, MacroData } from '@/features/stock-analyzer/types';
+import { Filing, Fundamentals, MacroData, PriceMetrics } from '@/features/stock-analyzer/types';
 
 export default function Home() {
   const [tickerInput, setTickerInput] = useState('');
@@ -29,6 +29,7 @@ export default function Home() {
 
   // Fundamentals state
   const [fundamentals, setFundamentals] = useState<Fundamentals | null>(null);
+  const [priceMetrics, setPriceMetrics] = useState<PriceMetrics | null>(null);
   const [loadingFundamentals, setLoadingFundamentals] = useState(false);
 
   // Macro Indicators state (FRED)
@@ -76,17 +77,18 @@ export default function Home() {
   // Search handler
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!tickerInput.trim()) return;
-
     const queryTicker = tickerInput.trim().toUpperCase();
+    if (!queryTicker) return;
+
     setActiveTicker(queryTicker);
-    setSecError('');
+    setActiveFiling(null);
     setFilings([]);
     setFiling10K(null);
     setFiling10Q(null);
     setFilingsForm4([]);
+    setSecError('');
     setFundamentals(null);
-    setActiveFiling(null);
+    setPriceMetrics(null);
 
     // Fetch SEC Filings
     setLoadingSec(true);
@@ -114,6 +116,7 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setFundamentals(data.fundamentals || null);
+        setPriceMetrics(data.priceMetrics || null);
       }
     } catch (err) {
       console.error('Failed to fetch fundamentals', err);
@@ -177,6 +180,7 @@ export default function Home() {
               <FundamentalsCard 
                 ticker={activeTicker}
                 fundamentals={fundamentals}
+                priceMetrics={priceMetrics}
                 loading={loadingFundamentals}
               />
             </div>

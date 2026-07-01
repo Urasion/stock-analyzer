@@ -40,3 +40,17 @@ export interface MacroData {
   unemploymentRate: MacroIndicator;
 }
 
+export interface PriceQuote {
+  date: string;
+  close: number;
+}
+
+export interface PriceMetrics {
+  currentPrice: number | null;
+  changePercent: number | null;
+  high30d: number | null;
+  low30d: number | null;
+  volatility30d: number | null;
+  quotes: PriceQuote[];
+}
+

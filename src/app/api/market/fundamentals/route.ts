@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import YahooFinance from 'yahoo-finance2';
+import { get30DayPriceMetrics } from '@/lib/price';
 
 const yahooFinance = new YahooFinance();
 
@@ -12,9 +13,15 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const summary = await yahooFinance.quoteSummary(ticker, {
-      modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics'],
-    });
+    const [summary, priceMetrics] = await Promise.all([
+      yahooFinance.quoteSummary(ticker, {
+        modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics'],
+      }),
+      get30DayPriceMetrics(ticker).catch(err => {
+        console.error('Failed to fetch price metrics:', err);
+        return null;
+      })
+    ]);
 
     if (!summary) {
       return NextResponse.json({ error: `No summary found for ticker: ${ticker}` }, { status: 404 });
@@ -41,6 +48,7 @@ export async function GET(request: NextRequest) {
         revenueGrowth,
         epsHistory,
       },
+      priceMetrics,
     });
   } catch (error) {
     console.error('Yahoo Finance API error:', error);

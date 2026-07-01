@@ -25,6 +25,14 @@ export interface FundamentalsInput {
   } | null;
 }
 
+export interface PriceMetricsInput {
+  currentPrice: number | null;
+  changePercent: number | null;
+  high30d: number | null;
+  low30d: number | null;
+  volatility30d: number | null;
+}
+
 /**
  * 월스트리트 수석 애널리스트 페르소나를 기반으로 기업의 다각적 재무 데이터와 SEC 공시들을 종합 분석하기 위한 프롬프트를 생성합니다.
  */
@@ -32,7 +40,8 @@ export function buildAnalysisPrompt(
   ticker: string,
   fundamentals: FundamentalsInput | null,
   combinedText: string,
-  macroData: MacroData | null
+  macroData: MacroData | null,
+  priceMetrics: PriceMetricsInput | null = null
 ): string {
   const trailingPEStr = fundamentals?.trailingPE !== null && fundamentals?.trailingPE !== undefined
     ? `${fundamentals.trailingPE}`
@@ -94,9 +103,21 @@ export function buildAnalysisPrompt(
 `;
   }
 
+  // 최근 30일 주가 지표 구성
+  let priceMetricsSection = '최근 주가 데이터 없음';
+  if (priceMetrics) {
+    const changeDirection = (priceMetrics.changePercent ?? 0) >= 0 ? '상승' : '하락';
+    priceMetricsSection = `
+- 현재 주가: $${priceMetrics.currentPrice}
+- 최근 30일 누적 주가 변동률: ${priceMetrics.changePercent?.toFixed(2)}% (${changeDirection})
+- 최근 30일 최고가: $${priceMetrics.high30d} / 최저가: $${priceMetrics.low30d}
+- 최근 30일 주가 변동성 (평균 대비 표준편차 비율): ${priceMetrics.volatility30d?.toFixed(2)}%
+`;
+  }
+
   return `
 당신은 월스트리트의 수석 애널리스트이자 주식시장 리스크 관리 전문가입니다.
-다음 기업(${ticker})의 '정밀 재무 흐름', '시장 컨센서스', '수집된 다양한 SEC 공시 데이터' 및 '미국 연준(FRED)의 최신 거시경제 상황'을 연계하여 종합적인 재무 영향 분석 보고서를 도출하세요.
+다음 기업(${ticker})의 '정밀 재무 흐름', '시장 컨센서스', '수집된 다양한 SEC 공시 데이터', '최근 주가 센티먼트' 및 '미국 연준(FRED)의 거시경제 상황'을 연계하여 종합적인 재무 영향 분석 보고서를 도출하세요.
 
 [1. 기업의 재무 맥락 및 전망 (Fundamentals & Consensus)]
 - PER 현황: 현재 PER ${trailingPEStr}배 (선행 PER ${forwardPEStr}배) / PBR: ${pbrStr}배
@@ -111,7 +132,10 @@ ${nextEstimateStr}
 [2. 미국 거시경제 상황 (Macroeconomic Context - FRED API)]
 ${macroSection}
 
-[3. 수집된 SEC 공시 데이터 (8-K, 10-K, 10-Q, Form 4 등)]
+[3. 최근 30일 주가 추이 및 시장 센티먼트 (Recent 30-Day Price & Sentiment)]
+${priceMetricsSection}
+
+[4. 수집된 SEC 공시 데이터 (8-K, 10-K, 10-Q, Form 4 등)]
 ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
 
 [분석 지시사항]
@@ -122,7 +146,10 @@ ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
    - 현재 미국 기준금리 수준이 해당 기업의 신규 자금 조달 비용(부채 이자 부담) 및 현금 흐름에 미칠 압박 정도를 진단하십시오.
    - 장단기 금리차가 역전(음수)되어 있는 경우, 향후 경기 둔화 가능성 대비 이 기업(특히 한계기업/적자기업/개잡주)의 비즈니스 안정성 및 부도 위험을 가치평가에 반영하십시오.
    - 소비자물가상승률(CPI YoY) 및 실업률 추세가 기업의 생산 비용 상승(마진 훼손 여부)과 제품 수요에 미칠 단기/중기적 영향을 평가하십시오.
-5. 분석 결과 도출되는 매출액(revenue)이나 EPS, 가이던스 등의 실질 값은 공시 원문과 위 제공된 '재무 맥락' 수치들을 토대로 정확하게 작성하세요. (정보 부재 시 '집계 중' 혹은 'N/A'가 아닌, 제공된 시장 컨센서스 및 과거 매출 데이터를 토대로 유추하여 합당한 가치평가를 제시하십시오.)
+5. 제공된 [3. 최근 30일 주가 추이 및 시장 센티먼트] 정보를 분석에 연계하십시오:
+   - 최근 30일 주가 변동성(평균 대비 표준편차 비율)이 극도로 높거나 주가가 폭락하는 상황에서 악재 공시가 연이어 발생했다면, 시장의 공포 심리 및 신용/추가 담보 리스크를 강조해 주십시오.
+   - 반대로 주가가 최근 급등하여 변동성이 높은 상태에서 호재성 공시가 났다면, 해당 공시가 실체 없는 테마성 거품(Pump & Dump)인지 혹은 실제 펀더멘털 개선을 유도할 견조한 모멘텀인지 분석하십시오.
+6. 분석 결과 도출되는 매출액(revenue)이나 EPS, 가이던스 등의 실질 값은 공시 원문과 위 제공된 '재무 맥락' 수치들을 토대로 정확하게 작성하세요. (정보 부재 시 '집계 중' 혹은 'N/A'가 아닌, 제공된 시장 컨센서스 및 과거 매출 데이터를 토대로 유추하여 합당한 가치평가를 제시하십시오.)
 
 [중요 규칙]
 - details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.

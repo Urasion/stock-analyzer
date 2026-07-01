@@ -85,7 +85,7 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
 
   return (
     <CardWrapper
-      title={`${ticker} 기초 재무 데이터`}
+      title={ticker ? `${ticker} 기초 재무 데이터` : '기업 기초 재무 데이터'}
       icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
     >
       {loading && (
@@ -95,13 +95,24 @@ export default function FundamentalsCard({ ticker, fundamentals, loading }: Fund
         </div>
       )}
 
-      {!loading && !fundamentals && (
+      {!loading && !ticker && (
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-500">
+          <div className="w-12 h-12 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-3 animate-pulse">
+            <BarChart3 className="w-6 h-6" />
+          </div>
+          <p className="text-xs leading-relaxed max-w-[200px]">
+            상단 검색창에 티커(예: <strong className="text-blue-400 font-bold">AAPL</strong>)를 입력하시면 개별 기업의 실시간 재무 지표를 로드합니다.
+          </p>
+        </div>
+      )}
+
+      {!loading && ticker && !fundamentals && (
         <div className="py-4 text-center text-slate-500 text-xs flex-1 flex items-center justify-center">
           재무 데이터를 수집하지 못했습니다. (야후 파이낸스 점검 중)
         </div>
       )}
 
-      {!loading && fundamentals && (
+      {!loading && ticker && fundamentals && (
         <div className="flex flex-col gap-6 flex-1">
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-4">

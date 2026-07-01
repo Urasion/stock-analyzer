@@ -159,42 +159,47 @@ export default function Home() {
           onSubmit={handleSearch} 
         />
 
-        {/* Dashboard Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          {/* SEC Filings Card */}
-          <div className="lg:col-span-4 h-full">
-            <FilingList 
-              filings={filings}
-              filing10K={filing10K}
-              filing10Q={filing10Q}
-              filingsForm4={filingsForm4}
-              loading={loadingSec}
-              error={secError}
-              activeFiling={activeFiling}
-              isAnalyzing={isAnalyzing}
-              activeTicker={activeTicker}
-              onAnalyze={handleAnalyze}
-            />
-          </div>
+        {/* Dashboard Layout */}
+        <div className="flex flex-col gap-8">
+          {/* Top Row: Indicators */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            {/* 1. 글로벌 거시경제 지표 */}
+            <div className="lg:col-span-4 h-full">
+              <MacroIndicatorsCard 
+                macroData={macroData}
+                loading={loadingMacro}
+                error={macroError}
+              />
+            </div>
 
-          {/* Fundamentals & Macro Indicators Panel */}
-          <div className="lg:col-span-3 h-full flex flex-col gap-6">
-            {activeTicker && (
+            {/* 2. 기초 재무 데이터 */}
+            <div className="lg:col-span-4 h-full">
               <FundamentalsCard 
                 ticker={activeTicker}
                 fundamentals={fundamentals}
                 loading={loadingFundamentals}
               />
-            )}
-            <MacroIndicatorsCard 
-              macroData={macroData}
-              loading={loadingMacro}
-              error={macroError}
-            />
+            </div>
+
+            {/* 3. 최근 SEC 8-K 수시 공시 */}
+            <div className="lg:col-span-4 h-full">
+              <FilingList 
+                filings={filings}
+                filing10K={filing10K}
+                filing10Q={filing10Q}
+                filingsForm4={filingsForm4}
+                loading={loadingSec}
+                error={secError}
+                activeFiling={activeFiling}
+                isAnalyzing={isAnalyzing}
+                activeTicker={activeTicker}
+                onAnalyze={handleAnalyze}
+              />
+            </div>
           </div>
 
-          {/* Streaming AI Report */}
-          <div className="lg:col-span-5 h-full">
+          {/* Bottom Row: AI Report */}
+          <div className="w-full">
             <AnalysisReport 
               ticker={activeTicker}
               activeFiling={activeFiling}

@@ -46,12 +46,6 @@ export default function FilingList({
         </div>
       )}
 
-      {!loading && filings.length === 0 && !error && (
-        <div className="py-12 text-center text-slate-500 text-sm flex-1 flex items-center justify-center">
-          {activeTicker ? '해당 티커의 최신 8-K 수시 공시를 찾지 못했습니다.' : '티커를 검색하여 공시 리스트를 확인하세요.'}
-        </div>
-      )}
-
       {error && (
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex gap-2 flex-1 items-start">
           <AlertOctagon className="w-5 h-5 shrink-0" />
@@ -59,7 +53,13 @@ export default function FilingList({
         </div>
       )}
 
-      {!loading && filings.length > 0 && (
+      {!loading && !activeTicker && !error && (
+        <div className="py-12 text-center text-slate-400 text-sm flex-1 flex items-center justify-center">
+          티커를 검색하여 공시 리스트를 확인하세요.
+        </div>
+      )}
+
+      {!loading && activeTicker && !error && (
         <div className="flex flex-col gap-4 flex-1">
           {/* 연계 분석 대상 요약 상태 노출 */}
           {(filing10K || filing10Q || (filingsForm4 && filingsForm4.length > 0)) && (
@@ -85,48 +85,58 @@ export default function FilingList({
             </div>
           )}
 
-          <div className="flex flex-col gap-3">
-            {filings.slice(0, 5).map((filing, index) => {
-              const isAnalyzingCombined = activeFiling?.accessionNumber === 'combined-analysis' && isAnalyzing;
-              return (
-                <div
-                  key={filing.accessionNumber}
-                  className={`p-4 rounded-xl border transition-all flex flex-col gap-2.5 ${
-                    isAnalyzingCombined
-                      ? 'bg-slate-900/60 border-blue-500/30'
-                      : 'bg-slate-950/40 border-slate-800 hover:border-slate-700/80'
-                  }`}
-                >
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                        {filing.form}
-                      </span>
-                      <span className="text-[10px] text-slate-500 font-semibold font-mono">공시 {index + 1}</span>
-                      <span className="text-xs text-slate-400 font-medium">{filing.filingDate}</span>
+          {/* 8-K 공시 목록 */}
+          {filings.length > 0 ? (
+            <div className="flex flex-col gap-3">
+              {filings.slice(0, 5).map((filing, index) => {
+                const isAnalyzingCombined = activeFiling?.accessionNumber === 'combined-analysis' && isAnalyzing;
+                return (
+                  <div
+                    key={filing.accessionNumber}
+                    className={`p-4 rounded-xl border transition-all flex flex-col gap-2.5 ${
+                      isAnalyzingCombined
+                        ? 'bg-slate-900/60 border-blue-500/30'
+                        : 'bg-slate-950/40 border-slate-800 hover:border-slate-700/80'
+                    }`}
+                  >
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                          {filing.form}
+                        </span>
+                        <span className="text-[10px] text-slate-500 font-semibold font-mono">공시 {index + 1}</span>
+                        <span className="text-xs text-slate-400 font-medium">{filing.filingDate}</span>
+                      </div>
+                      <a
+                        href={filing.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-0.5 transition-colors"
+                      >
+                        원본 보기 <ArrowUpRight className="w-3.5 h-3.5" />
+                      </a>
                     </div>
-                    <a
-                      href={filing.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-0.5 transition-colors"
-                    >
-                      원본 보기 <ArrowUpRight className="w-3.5 h-3.5" />
-                    </a>
+                    <p className="text-sm font-medium text-slate-200 line-clamp-2 leading-relaxed">
+                      {filing.description || `${activeTicker} 8-K 수시 공시`}
+                    </p>
                   </div>
-                  <p className="text-sm font-medium text-slate-200 line-clamp-2 leading-relaxed">
-                    {filing.description || `${activeTicker} 8-K 수시 공시`}
-                  </p>
-                </div>
-              );
-            })}
-            
-            {filings.length > 5 && (
-              <p className="text-[11px] text-slate-500 text-center mt-1">
-                * 최근 5개의 공시만 선별하여 종합 분석을 진행합니다. (총 {filings.length}개 공시 중)
-              </p>
-            )}
-          </div>
+                );
+              })}
+              
+              {filings.length > 5 && (
+                <p className="text-[11px] text-slate-500 text-center mt-1">
+                  * 최근 5개의 공시만 선별하여 종합 분석을 진행합니다. (총 {filings.length}개 공시 중)
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800/40 text-center text-slate-400 text-xs py-8">
+              최근 8-K 수시 공시 기록이 없습니다.
+              <span className="block text-[10px] text-slate-500 mt-1">
+                (10-K, 10-Q, Form 4 및 거시경제/재무 지표를 토대로 분석을 수행합니다.)
+              </span>
+            </div>
+          )}
 
           <button
             onClick={() => onAnalyze(filings.slice(0, 5), filing10K, filing10Q, filingsForm4)}
@@ -140,12 +150,14 @@ export default function FilingList({
             {isAnalyzing ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                8-K + 10-K/Q + Form 4 종합 분석 중...
+                종합 분석 진행 중...
               </>
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                최근 5개 8-K + 10-K/Q + Form 4 종합 분석
+                {filings.length > 0 
+                  ? '최근 5개 8-K + 10-K/Q + Form 4 종합 분석' 
+                  : '10-K/Q + Form 4 종합 분석 시작'}
               </>
             )}
           </button>

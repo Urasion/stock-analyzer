@@ -127,14 +127,16 @@ export default function Home() {
 
   // Trigger AI Analysis
   const handleAnalyze = (targetFilings: Filing[], target10K: Filing | null, target10Q: Filing | null, targetForm4: Filing[]) => {
-    if (targetFilings.length === 0) return;
+    if (!activeTicker) return;
 
     const virtualFiling: Filing = {
       accessionNumber: 'combined-analysis',
       form: 'SEC 종합',
       filingDate: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }),
       reportDate: '최근 다각 분석',
-      description: `8-K 수시공시 ${targetFilings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
+      description: targetFilings.length > 0
+        ? `8-K 수시공시 ${targetFilings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`
+        : `10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
       url: '',
     };
 

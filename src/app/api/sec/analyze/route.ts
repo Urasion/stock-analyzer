@@ -24,12 +24,14 @@ export async function POST(request: NextRequest) {
   try {
     const { urls, url10K, url10Q, urlsForm4, ticker } = await request.json();
 
-    if (!urls || !Array.isArray(urls) || urls.length === 0 || !ticker) {
+    if (!ticker) {
       return NextResponse.json(
-        { error: 'Both urls (array) and ticker parameters are required in the request body.' },
+        { error: 'The ticker parameter is required in the request body.' },
         { status: 400 }
       );
     }
+
+    const finalUrls = Array.isArray(urls) ? urls : [];
 
     const upperTicker = ticker.toUpperCase();
 
@@ -100,7 +102,7 @@ export async function POST(request: NextRequest) {
         }
       };
 
-      const tasks8K = urls.map((url: string, index: number) => fetchAndScrape8K(url, index));
+      const tasks8K = finalUrls.map((url: string, index: number) => fetchAndScrape8K(url, index));
       const task10K = url10K ? [fetchAndScrape10K(url10K)] : [];
       const task10Q = url10Q ? [fetchAndScrape10Q(url10Q)] : [];
       const tasksForm4 = (urlsForm4 || []).slice(0, 3).map((url: string, index: number) => fetchAndScrapeForm4(url, index));
@@ -119,6 +121,9 @@ export async function POST(request: NextRequest) {
       if (resForm4.length > 0) parts.push(resForm4.join('\n\n---\n\n'));
 
       scrapedText = parts.join('\n\n=================================\n\n');
+      if (!scrapedText) {
+        scrapedText = '[수집된 SEC 공시 데이터 없음: 최근 공시 기록이 조회되지 않았습니다. 거시경제 및 기초 재무지표만을 토대로 분석을 수행합니다.]';
+      }
     } catch (err) {
       console.error('SEC Bulk Scraping error:', err);
       const message = err instanceof Error ? err.message : String(err);

@@ -1,20 +1,12 @@
 "use client";
 
-import { Fundamentals, PriceMetrics } from '../types';
+import { Fundamentals } from '../types';
 import { 
   BarChart3, 
   Loader2, 
   TrendingUp, 
   TrendingDown
 } from 'lucide-react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  Tooltip as ChartTooltip,
-} from 'recharts';
 import CardWrapper from '@/components/CardWrapper';
 import MetricItem from '@/components/MetricItem';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -22,14 +14,12 @@ import InfoTooltip from '@/components/InfoTooltip';
 interface FundamentalsCardProps {
   ticker: string;
   fundamentals: Fundamentals | null;
-  priceMetrics: PriceMetrics | null;
   loading: boolean;
 }
 
 export default function FundamentalsCard({ 
   ticker, 
   fundamentals, 
-  priceMetrics, 
   loading 
 }: FundamentalsCardProps) {
   const formatPercent = (val: number | null) => {
@@ -166,94 +156,7 @@ export default function FundamentalsCard({
             />
           </div>
 
-          {/* Price Metrics Summary Grid */}
-          {priceMetrics && (
-            <div className="grid grid-cols-3 gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
-              <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-slate-400 font-bold uppercase">현재 주가</span>
-                <div className="flex items-baseline gap-1 flex-wrap">
-                  <span className="text-xs font-bold text-slate-100">${priceMetrics.currentPrice}</span>
-                  {priceMetrics.changePercent !== null && (
-                    <span className={`text-[9px] font-bold ${priceMetrics.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
-                      ({priceMetrics.changePercent >= 0 ? '+' : ''}{priceMetrics.changePercent}%)
-                    </span>
-                  )}
-                </div>
-              </div>
 
-              <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-3">
-                <span className="text-[10px] text-slate-400 font-bold uppercase">180일 최고/최저</span>
-                <span className="text-[10px] font-bold text-slate-100">
-                  ${priceMetrics.high180d} / ${priceMetrics.low180d}
-                </span>
-              </div>
-
-              <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-3">
-                <div className="flex items-center gap-0.5">
-                  <span className="text-[10px] text-slate-400 font-bold uppercase">180일 변동성</span>
-                  <InfoTooltip content="최근 180일(6개월/2분기) 일일 종가의 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 주가 널뛰기가 심한 고위험 종목임을 나타냅니다." />
-                </div>
-                <span className="text-[10px] font-bold text-slate-100">
-                  {priceMetrics.volatility180d}%
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* 180-Day Price Chart */}
-          {priceMetrics && priceMetrics.quotes && priceMetrics.quotes.length > 0 && (
-            <div className="flex flex-col">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">최근 180일 주가 추이</span>
-              <div className="h-28 w-full bg-slate-950/10 rounded-xl border border-slate-900/60 p-1.5 overflow-hidden">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={priceMetrics.quotes} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={(tick) => {
-                        const parts = tick.split('-');
-                        return parts.length === 3 ? `${parts[1]}.${parts[2]}` : tick;
-                      }}
-                      tick={{ fontSize: 8, fill: '#64748b' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      domain={['auto', 'auto']} 
-                      tick={{ fontSize: 8, fill: '#64748b' }}
-                      axisLine={false}
-                      tickLine={false}
-                    />
-                    <ChartTooltip
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                        borderColor: '#1e293b', 
-                        borderRadius: '6px',
-                        fontSize: '10px',
-                        color: '#e2e8f0',
-                        padding: '6px'
-                      }}
-                      labelFormatter={(label) => `날짜: ${label}`}
-                      formatter={(value: any) => [`$${Number(value).toFixed(2)}`, '종가']}
-                    />
-                    <Area 
-                      type="monotone" 
-                      dataKey="close" 
-                      stroke="#3b82f6" 
-                      strokeWidth={1.5}
-                      fillOpacity={1} 
-                      fill="url(#priceGradient)" 
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          )}
 
           {/* EPS History Chart */}
           {fundamentals.epsHistory && fundamentals.epsHistory.length > 0 && (() => {

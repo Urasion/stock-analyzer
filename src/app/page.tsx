@@ -10,10 +10,12 @@ import SearchForm from '@/features/stock-analyzer/components/SearchForm';
 import FilingList from '@/features/stock-analyzer/components/FilingList';
 import FundamentalsCard from '@/features/stock-analyzer/components/FundamentalsCard';
 import MacroIndicatorsCard from '@/features/stock-analyzer/components/MacroIndicatorsCard';
+import PriceChartCard from '@/features/stock-analyzer/components/PriceChartCard';
 import AnalysisReport from '@/features/stock-analyzer/components/AnalysisReport';
 
 // Types
-import { Filing, Fundamentals, MacroData, PriceMetrics } from '@/features/stock-analyzer/types';
+import { Filing, Fundamentals, MacroData } from '@/features/stock-analyzer/types';
+import { ChartRangeData } from '@/lib/price';
 
 export default function Home() {
   const [tickerInput, setTickerInput] = useState('');
@@ -29,8 +31,12 @@ export default function Home() {
 
   // Fundamentals state
   const [fundamentals, setFundamentals] = useState<Fundamentals | null>(null);
-  const [priceMetrics, setPriceMetrics] = useState<PriceMetrics | null>(null);
   const [loadingFundamentals, setLoadingFundamentals] = useState(false);
+
+  // Price Chart state
+  const [chartRange, setChartRange] = useState<string>('1M');
+  const [chartData, setChartData] = useState<ChartRangeData | null>(null);
+  const [loadingChart, setLoadingChart] = useState(false);
 
   // Macro Indicators state (FRED)
   const [macroData, setMacroData] = useState<MacroData | null>(null);
@@ -74,6 +80,33 @@ export default function Home() {
     schema: stockAnalysisSchema,
   });
 
+  // Fetch Price Chart Data
+  const fetchChartData = async (ticker: string, range: string) => {
+    setLoadingChart(true);
+    try {
+      const res = await fetch(`/api/market/chart?ticker=${ticker}&range=${range}`);
+      if (res.ok) {
+        const data = await res.json();
+        setChartData(data);
+      } else {
+        setChartData(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch chart data:', err);
+      setChartData(null);
+    } finally {
+      setLoadingChart(false);
+    }
+  };
+
+  const handleRangeChange = (newRange: string) => {
+    if (!newRange) return;
+    setChartRange(newRange);
+    if (activeTicker) {
+      fetchChartData(activeTicker, newRange);
+    }
+  };
+
   // Search handler
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +121,7 @@ export default function Home() {
     setFilingsForm4([]);
     setSecError('');
     setFundamentals(null);
-    setPriceMetrics(null);
+    setChartData(null); // Clear previous chart data
 
     // Fetch SEC Filings
     setLoadingSec(true);
@@ -116,13 +149,15 @@ export default function Home() {
       if (res.ok) {
         const data = await res.json();
         setFundamentals(data.fundamentals || null);
-        setPriceMetrics(data.priceMetrics || null);
       }
     } catch (err) {
       console.error('Failed to fetch fundamentals', err);
     } finally {
       setLoadingFundamentals(false);
     }
+
+    // Fetch Chart Data
+    fetchChartData(queryTicker, chartRange);
   };
 
   // Trigger AI Analysis
@@ -182,7 +217,6 @@ export default function Home() {
               <FundamentalsCard 
                 ticker={activeTicker}
                 fundamentals={fundamentals}
-                priceMetrics={priceMetrics}
                 loading={loadingFundamentals}
               />
             </div>
@@ -203,6 +237,19 @@ export default function Home() {
               />
             </div>
           </div>
+
+          {/* Middle Row: Standalone Price Chart */}
+          {(activeTicker || loadingChart) && (
+            <div className="w-full">
+              <PriceChartCard
+                ticker={activeTicker}
+                chartData={chartData}
+                loading={loadingChart}
+                range={chartRange}
+                onRangeChange={handleRangeChange}
+              />
+            </div>
+          )}
 
           {/* Bottom Row: AI Report */}
           <div className="w-full">

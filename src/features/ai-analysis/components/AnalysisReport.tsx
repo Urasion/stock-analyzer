@@ -1,19 +1,22 @@
-import { Filing } from '../types';
-import { 
-  Sparkles, 
-  Loader2, 
-  AlertOctagon, 
-  Building2, 
-  TrendingUp, 
-  AlertTriangle, 
-  DollarSign, 
+'use client';
+
+import * as React from 'react';
+import { z } from 'zod';
+import {
+  Sparkles,
+  Loader2,
+  AlertOctagon,
+  Building2,
+  TrendingUp,
+  AlertTriangle,
+  DollarSign,
   Info,
   Gauge,
-  CheckCircle2
+  CheckCircle2,
 } from 'lucide-react';
-import { z } from 'zod';
 import { stockAnalysisSchema } from '@/app/schema';
 import CardWrapper from '@/components/CardWrapper';
+import { Filing } from '@/types';
 
 const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
   if (!revStr) return '집계 중...';
@@ -24,7 +27,6 @@ const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
     if (!isNaN(numValue)) {
       const eokValue = numValue * 10;
       const formattedEok = eokValue.toLocaleString('ko-KR', { maximumFractionDigits: 2 });
-      // If the original string had $ at start, let's keep it clean
       return `${trimmed} (${formattedEok}억 달러)`;
     }
   }
@@ -48,8 +50,8 @@ export default function AnalysisReport({
   activeFiling,
   analysis,
   isAnalyzing,
-  error
-}: AnalysisReportProps) {
+  error,
+}: AnalysisReportProps): React.JSX.Element {
   // Safe fallback and type guard to filter out undefined items during streaming
   const keyDrivers = (analysis?.context?.keyDrivers ?? []).filter((d): d is string => typeof d === 'string');
   const riskFactors = (analysis?.context?.riskFactors ?? []).filter((r): r is string => typeof r === 'string');
@@ -66,7 +68,6 @@ export default function AnalysisReport({
         </div>
       )}
     >
-
       {/* Error alert */}
       {error && (
         <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm flex gap-2 mb-4">
@@ -94,7 +95,6 @@ export default function AnalysisReport({
       {/* Streaming Content Display */}
       {(activeFiling || analysis) && (
         <div className="flex-1 flex flex-col gap-6">
-          
           {/* Active Document Indicator */}
           {activeFiling && (
             <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/60 flex items-center justify-between">
@@ -112,17 +112,17 @@ export default function AnalysisReport({
           {/* 1. Judgment Block */}
           <div className="p-5 bg-linear-to-br from-slate-950 to-slate-900 rounded-xl border border-slate-800 flex flex-col gap-4 shadow-inner relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
-            
+
             <div className="flex justify-between items-center flex-wrap gap-3">
               <div>
                 <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">INVESTMENT SENTIMENT</span>
                 <div className="flex items-center gap-2">
                   <span className={`text-lg font-extrabold px-3.5 py-1 rounded-full tracking-wider border shadow-md ${
                     analysis?.judgment?.sentiment === 'STRONG BUY' || analysis?.judgment?.sentiment === 'BUY'
-                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-blue-500/5'
+                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-blue-500/5"
                       : analysis?.judgment?.sentiment === 'STRONG SELL' || analysis?.judgment?.sentiment === 'SELL'
-                      ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5'
-                      : 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5'
+                      ? "bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5"
+                      : "bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5"
                   }`}>
                     {analysis?.judgment?.sentiment || '대기 중...'}
                   </span>
@@ -148,8 +148,8 @@ export default function AnalysisReport({
             {/* Progress Bar for Confidence */}
             {analysis?.judgment?.confidenceScore !== undefined && (
               <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                <div 
-                  className="bg-linear-to-r from-blue-600 to-sky-400 h-1.5 transition-all duration-500" 
+                <div
+                  className="bg-linear-to-r from-blue-600 to-sky-400 h-1.5 transition-all duration-500"
                   style={{ width: `${analysis.judgment.confidenceScore}%` }}
                 ></div>
               </div>
@@ -173,10 +173,10 @@ export default function AnalysisReport({
                 {analysis?.financials?.revenue?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.revenue.status === 'Beat'
-                      ? 'bg-blue-500/10 text-blue-400'
+                      ? "bg-blue-500/10 text-blue-400"
                       : analysis.financials.revenue.status === 'Miss'
-                      ? 'bg-rose-500/10 text-rose-400'
-                      : 'bg-amber-500/10 text-amber-400'
+                      ? "bg-rose-500/10 text-rose-400"
+                      : "bg-amber-500/10 text-amber-400"
                   }`}>
                     {analysis.financials.revenue.status}
                   </span>
@@ -201,10 +201,10 @@ export default function AnalysisReport({
                 {analysis?.financials?.eps?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.eps.status === 'Beat'
-                      ? 'bg-blue-500/10 text-blue-400'
+                      ? "bg-blue-500/10 text-blue-400"
                       : analysis.financials.eps.status === 'Miss'
-                      ? 'bg-rose-500/10 text-rose-400'
-                      : 'bg-amber-500/10 text-amber-400'
+                      ? "bg-rose-500/10 text-rose-400"
+                      : "bg-amber-500/10 text-amber-400"
                   }`}>
                     {analysis.financials.eps.status}
                   </span>
@@ -223,12 +223,12 @@ export default function AnalysisReport({
               {analysis?.financials?.guidance?.status && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                   analysis.financials.guidance.status === 'Raised'
-                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
+                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                     : analysis.financials.guidance.status === 'Lowered'
-                    ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                    ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                     : analysis.financials.guidance.status === 'Maintained'
-                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
-                    : 'bg-slate-800 text-slate-400'
+                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
+                    : "bg-slate-800 text-slate-400"
                 }`}>
                   {analysis.financials.guidance.status}
                 </span>
@@ -249,7 +249,7 @@ export default function AnalysisReport({
               </span>
               <ul className="flex flex-col gap-2.5">
                 {keyDrivers.length > 0 ? (
-                  keyDrivers.map((driver: string, i: number) => (
+                  keyDrivers.map((driver: string, i: number): React.JSX.Element => (
                     <li key={i} className="text-xs text-slate-200 flex items-start gap-1.5 leading-relaxed font-medium">
                       <CheckCircle2 className="w-3.5 h-3.5 text-blue-500 shrink-0 mt-0.5" />
                       <span>{driver}</span>
@@ -269,7 +269,7 @@ export default function AnalysisReport({
               </span>
               <ul className="flex flex-col gap-2.5">
                 {riskFactors.length > 0 ? (
-                  riskFactors.map((risk: string, i: number) => (
+                  riskFactors.map((risk: string, i: number): React.JSX.Element => (
                     <li key={i} className="text-xs text-slate-200 flex items-start gap-1.5 leading-relaxed font-medium">
                       <AlertTriangle className="w-3.5 h-3.5 text-rose-500 shrink-0 mt-0.5" />
                       <span>{risk}</span>

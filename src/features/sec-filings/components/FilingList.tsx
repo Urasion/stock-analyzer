@@ -1,12 +1,15 @@
-import { Filing } from '../types';
-import { 
-  FileText, 
-  Loader2, 
-  AlertOctagon, 
-  ArrowUpRight, 
-  Sparkles 
+'use client';
+
+import * as React from 'react';
+import {
+  FileText,
+  Loader2,
+  AlertOctagon,
+  ArrowUpRight,
+  Sparkles,
 } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
+import { Filing } from '@/types';
 
 interface FilingListProps {
   filings: Filing[];
@@ -18,7 +21,12 @@ interface FilingListProps {
   activeFiling: Filing | null;
   isAnalyzing: boolean;
   activeTicker: string;
-  onAnalyze: (filings: Filing[], filing10K: Filing | null, filing10Q: Filing | null, filingsForm4: Filing[]) => void;
+  onAnalyze: (
+    filings: Filing[],
+    filing10K: Filing | null,
+    filing10Q: Filing | null,
+    filingsForm4: Filing[],
+  ) => void;
 }
 
 export default function FilingList({
@@ -31,14 +39,13 @@ export default function FilingList({
   activeFiling,
   isAnalyzing,
   activeTicker,
-  onAnalyze
-}: FilingListProps) {
+  onAnalyze,
+}: FilingListProps): React.JSX.Element {
   return (
     <CardWrapper
       title="최근 SEC 8-K 수시 공시"
       icon={<FileText className="w-5 h-5 text-blue-400" />}
     >
-
       {loading && (
         <div className="py-12 flex flex-col items-center justify-center gap-3 text-slate-400 flex-1">
           <Loader2 className="w-8 h-8 animate-spin text-blue-400" />
@@ -122,7 +129,7 @@ export default function FilingList({
                   </div>
                 );
               })}
-              
+
               {filings.length > 5 && (
                 <p className="text-[11px] text-slate-500 text-center mt-1">
                   * 최근 5개의 공시만 선별하여 종합 분석을 진행합니다. (총 {filings.length}개 공시 중)
@@ -146,6 +153,7 @@ export default function FilingList({
                 ? 'bg-slate-900 border border-blue-500/30 text-blue-400 cursor-default'
                 : 'bg-blue-600 hover:bg-blue-500 text-slate-950 shadow-lg shadow-blue-500/10 cursor-pointer disabled:opacity-50'
             }`}
+            type="button"
           >
             {isAnalyzing ? (
               <>
@@ -155,8 +163,8 @@ export default function FilingList({
             ) : (
               <>
                 <Sparkles className="w-4 h-4" />
-                {filings.length > 0 
-                  ? '최근 5개 8-K + 10-K/Q + Form 4 종합 분석' 
+                {filings.length > 0
+                  ? '최근 5개 8-K + 10-K/Q + Form 4 종합 분석'
                   : '10-K/Q + Form 4 종합 분석 시작'}
               </>
             )}

@@ -1,3 +1,6 @@
+'use client';
+
+import * as React from 'react';
 import { Search } from 'lucide-react';
 
 interface SearchFormProps {
@@ -6,14 +9,18 @@ interface SearchFormProps {
   onSubmit: (e: React.FormEvent) => void;
 }
 
-export default function SearchForm({ tickerInput, setTickerInput, onSubmit }: SearchFormProps) {
+export default function SearchForm({
+  tickerInput,
+  setTickerInput,
+  onSubmit,
+}: SearchFormProps): React.JSX.Element {
   return (
     <section className="mb-10 text-center max-w-2xl mx-auto">
       <h2 className="text-3xl font-extrabold tracking-tight mb-3 bg-linear-to-r from-white via-slate-100 to-slate-400 bg-clip-text text-transparent">
         미국 상장 기업 어닝 리포트 분석
       </h2>
       <p className="text-slate-400 text-sm mb-6 leading-relaxed">
-        미국 주식 티커를 입력하여 최근 SEC 8-K 수시 공시와 실시간 재무 기초 데이터를 수집하고, <br/>
+        미국 주식 티커를 입력하여 최근 SEC 8-K 수시 공시와 실시간 재무 기초 데이터를 수집하고, <br />
         Gemini 3.5 Flash AI를 통해 어닝 서프라이즈 여부와 향후 투자 판단을 스트리밍으로 진단해보세요.
       </p>
 

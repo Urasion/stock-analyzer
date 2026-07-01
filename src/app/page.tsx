@@ -7,15 +7,17 @@ import { stockAnalysisSchema } from '@/app/schema';
 
 // Components
 import Navbar from '@/components/Navbar';
-import SearchForm from '@/features/stock-analyzer/components/SearchForm';
-import FilingList from '@/features/stock-analyzer/components/FilingList';
-import FundamentalsCard from '@/features/stock-analyzer/components/FundamentalsCard';
-import MacroIndicatorsCard from '@/features/stock-analyzer/components/MacroIndicatorsCard';
-import PriceChartCard from '@/features/stock-analyzer/components/PriceChartCard';
-import AnalysisReport from '@/features/stock-analyzer/components/AnalysisReport';
+import SearchForm from '@/features/search/components/SearchForm';
+import FilingList from '@/features/sec-filings/components/FilingList';
+import FundamentalsCard from '@/features/fundamentals/components/FundamentalsCard';
+import MacroIndicatorsCard from '@/features/macro-indicators/components/MacroIndicatorsCard';
+import PriceChartCard from '@/features/price-chart/components/PriceChartCard';
+import AnalysisReport from '@/features/ai-analysis/components/AnalysisReport';
 
 // Types
-import { Filing, Fundamentals, MacroData } from '@/features/stock-analyzer/types';
+import { Filing } from '@/types';
+import { Fundamentals } from '@/features/fundamentals/types';
+import { MacroData } from '@/features/macro-indicators/types';
 import { ChartRangeData } from '@/lib/price';
 
 export default function Home(): React.JSX.Element {

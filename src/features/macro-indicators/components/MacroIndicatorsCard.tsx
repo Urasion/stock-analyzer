@@ -1,17 +1,18 @@
-"use client";
+'use client';
 
-import { MacroData } from '../types';
-import { 
-  Globe, 
-  Loader2, 
-  TrendingUp, 
-  TrendingDown, 
+import * as React from 'react';
+import {
+  Globe,
+  Loader2,
+  TrendingUp,
+  TrendingDown,
   Minus,
   AlertTriangle,
-  CheckCircle2
+  CheckCircle2,
 } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
 import MetricItem from '@/components/MetricItem';
+import { MacroData } from '../types';
 
 interface MacroIndicatorsCardProps {
   macroData: MacroData | null;
@@ -19,29 +20,28 @@ interface MacroIndicatorsCardProps {
   error?: string;
 }
 
-export default function MacroIndicatorsCard({ macroData, loading, error }: MacroIndicatorsCardProps) {
-  
-  const getTrendIcon = (trend: 'up' | 'down' | 'flat', metricType: 'rate' | 'inflation' | 'unrate') => {
+export default function MacroIndicatorsCard({
+  macroData,
+  loading,
+  error,
+}: MacroIndicatorsCardProps): React.JSX.Element {
+  const getTrendIcon = (trend: 'up' | 'down' | 'flat'): React.JSX.Element => {
     if (trend === 'up') {
-      // For macro metrics in a stock analyzer, rising rates/inflation are generally warnings (rose), rising unemployment is also warning (rose)
-      const color = 'text-rose-400';
-      return <TrendingUp className={`w-3.5 h-3.5 ${color}`} />;
+      return <TrendingUp className="w-3.5 h-3.5 text-rose-400" />;
     }
     if (trend === 'down') {
-      // Falling rates/inflation are generally favorable (blue)
-      const color = 'text-blue-400';
-      return <TrendingDown className={`w-3.5 h-3.5 ${color}`} />;
+      return <TrendingDown className="w-3.5 h-3.5 text-blue-400" />;
     }
     return <Minus className="w-3.5 h-3.5 text-slate-500" />;
   };
 
-  const getTrendText = (trend: 'up' | 'down' | 'flat') => {
+  const getTrendText = (trend: 'up' | 'down' | 'flat'): string => {
     if (trend === 'up') return '상승세';
     if (trend === 'down') return '하락세';
     return '동결/횡보';
   };
 
-  const getTrendBgColor = (trend: 'up' | 'down' | 'flat') => {
+  const getTrendBgColor = (trend: 'up' | 'down' | 'flat'): string => {
     if (trend === 'up') return 'bg-rose-500/10 text-rose-400 border border-rose-500/20';
     if (trend === 'down') return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
     return 'bg-slate-800/40 text-slate-400 border border-slate-800/40';
@@ -51,7 +51,7 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
     if (!dateStr) return '';
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
-    
+
     const year = date.getFullYear();
     const month = date.getMonth() + 1;
     return `${year}년 ${month}월`;
@@ -60,13 +60,13 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
   return (
     <CardWrapper
       title="글로벌 거시경제 지표"
-      icon={<Globe className={`w-5 h-5 ${macroData?.yieldCurveSpread.isInverted ? 'text-rose-400' : 'text-blue-400'}`} />}
-      className={macroData?.yieldCurveSpread.isInverted ? 'bg-rose-950/5 border-rose-950/40 shadow-rose-950/5' : ''}
+      icon={<Globe className={`w-5 h-5 ${macroData?.yieldCurveSpread.isInverted ? "text-rose-400" : "text-blue-400"}`} />}
+      className={macroData?.yieldCurveSpread.isInverted ? "bg-rose-950/5 border-rose-950/40 shadow-rose-950/5" : ""}
       headerRight={
         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-          macroData?.yieldCurveSpread.isInverted 
-            ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse'
-            : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
+          macroData?.yieldCurveSpread.isInverted
+            ? "bg-rose-500/10 text-rose-400 border border-rose-500/20 animate-pulse"
+            : "bg-blue-500/10 text-blue-400 border border-blue-500/20"
         }`}>
           FRED API 연동
         </span>
@@ -116,7 +116,6 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
 
           {/* Metrics Grid */}
           <div className="grid grid-cols-2 gap-3.5">
-            
             {/* 1. Federal Funds Rate */}
             <MetricItem
               label="미국 기준금리"
@@ -134,7 +133,7 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
                 <>
                   <span className="text-slate-500 font-medium font-mono">{formatQuarterDate(macroData.fedFundsRate.date)}</span>
                   <span className={`px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5 ${getTrendBgColor(macroData.fedFundsRate.trend)}`}>
-                    {getTrendIcon(macroData.fedFundsRate.trend, 'rate')}
+                    {getTrendIcon(macroData.fedFundsRate.trend)}
                     {getTrendText(macroData.fedFundsRate.trend)}
                   </span>
                 </>
@@ -158,7 +157,7 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
                 <>
                   <span className="text-slate-500 font-medium font-mono">{formatQuarterDate(macroData.inflationYoY.date)}</span>
                   <span className={`px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5 ${getTrendBgColor(macroData.inflationYoY.trend)}`}>
-                    {getTrendIcon(macroData.inflationYoY.trend, 'inflation')}
+                    {getTrendIcon(macroData.inflationYoY.trend)}
                     {getTrendText(macroData.inflationYoY.trend)}
                   </span>
                 </>
@@ -169,7 +168,7 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
             <MetricItem
               label="장단기 금리차 (10Y-2Y)"
               value={`${macroData.yieldCurveSpread.value}%`}
-              className={`p-3 ${macroData.yieldCurveSpread.isInverted ? 'border-rose-950/50' : ''}`}
+              className={`p-3 ${macroData.yieldCurveSpread.isInverted ? "border-rose-950/50" : ""}`}
               tooltipContent={
                 <>
                   <strong>국채 스프레드 (T10Y2Y)</strong>
@@ -213,7 +212,7 @@ export default function MacroIndicatorsCard({ macroData, loading, error }: Macro
                 <>
                   <span className="text-slate-500 font-medium font-mono">{formatQuarterDate(macroData.unemploymentRate.date)}</span>
                   <span className={`px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5 ${getTrendBgColor(macroData.unemploymentRate.trend)}`}>
-                    {getTrendIcon(macroData.unemploymentRate.trend, 'unrate')}
+                    {getTrendIcon(macroData.unemploymentRate.trend)}
                     {getTrendText(macroData.unemploymentRate.trend)}
                   </span>
                 </>

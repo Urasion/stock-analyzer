@@ -37,7 +37,7 @@ export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetric
 
     const quotes: PriceQuote[] = chartResult.quotes
       .filter((q: any) => q.close !== undefined && q.close !== null)
-      .map((q: any) => {
+      .map((q: any): PriceQuote => {
         let dateStr = '';
         if (q.date instanceof Date) {
           dateStr = q.date.toISOString().split('T')[0];
@@ -56,9 +56,11 @@ export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetric
 
     const currentPrice = chartResult.meta.regularMarketPrice ?? quotes[quotes.length - 1].close;
     const firstPrice = quotes[0].close;
-    const changePercent = firstPrice ? Number((((currentPrice - firstPrice) / firstPrice) * 100).toFixed(2)) : null;
+    const changePercent = firstPrice
+      ? Number((((currentPrice - firstPrice) / firstPrice) * 100).toFixed(2))
+      : null;
 
-    const prices = quotes.map(q => q.close);
+    const prices = quotes.map((q) => q.close);
     const high180d = Number(Math.max(...prices).toFixed(2));
     const low180d = Number(Math.min(...prices).toFixed(2));
 
@@ -95,8 +97,8 @@ export interface ChartRangeData {
 export async function getPriceChartData(ticker: string, range: string): Promise<ChartRangeData | null> {
   try {
     const today = new Date();
-    let startDate = new Date();
-    let interval: "15m" | "1h" | "1d" = "1d";
+    const startDate = new Date();
+    let interval: '15m' | '1h' | '1d' = '1d';
 
     const normalizedRange = range.toUpperCase();
 
@@ -122,7 +124,7 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
     const chartResult = await yahooFinance.chart(ticker, {
       period1: startDate.toISOString().split('T')[0],
       period2: today.toISOString().split('T')[0],
-      interval: interval,
+      interval,
     });
 
     if (!chartResult || !chartResult.quotes || chartResult.quotes.length === 0) {
@@ -144,7 +146,7 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
       });
     }
 
-    const quotes: PriceQuote[] = rawQuotes.map((q: any) => {
+    const quotes: PriceQuote[] = rawQuotes.map((q: any): PriceQuote => {
       let dateStr = '';
       if (q.date instanceof Date) {
         dateStr = q.date.toISOString();
@@ -163,9 +165,11 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
 
     const currentPrice = chartResult.meta.regularMarketPrice ?? quotes[quotes.length - 1].close;
     const firstPrice = quotes[0].close;
-    const changePercent = firstPrice ? Number((((currentPrice - firstPrice) / firstPrice) * 100).toFixed(2)) : null;
+    const changePercent = firstPrice
+      ? Number((((currentPrice - firstPrice) / firstPrice) * 100).toFixed(2))
+      : null;
 
-    const prices = quotes.map(q => q.close);
+    const prices = quotes.map((q) => q.close);
     const high = Number(Math.max(...prices).toFixed(2));
     const low = Number(Math.min(...prices).toFixed(2));
 

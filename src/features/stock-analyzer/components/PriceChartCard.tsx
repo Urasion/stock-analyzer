@@ -1,7 +1,8 @@
-"use client";
+'use client';
 
+import * as React from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
-import { LineChart, Loader2, TrendingUp, TrendingDown, HelpCircle } from 'lucide-react';
+import { LineChart, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
 import InfoTooltip from '@/components/InfoTooltip';
 import { Toggle } from '@/components/ui/toggle';
@@ -21,10 +22,10 @@ export default function PriceChartCard({
   chartData,
   loading,
   range,
-  onRangeChange
-}: PriceChartCardProps) {
+  onRangeChange,
+}: PriceChartCardProps): React.JSX.Element {
   // Format XAxis ticks based on range
-  const formatXAxis = (tickStr: any) => {
+  const formatXAxis = (tickStr: any): string => {
     try {
       if (!tickStr) return '';
       const date = new Date(tickStr);
@@ -32,23 +33,23 @@ export default function PriceChartCard({
         const hours = String(date.getHours()).padStart(2, '0');
         const minutes = String(date.getMinutes()).padStart(2, '0');
         return `${hours}:${minutes}`;
-      } else if (range === '1W' || range === '1M') {
+      }
+      if (range === '1W' || range === '1M') {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
         return `${month}.${day}`;
-      } else {
-        // 1Y
-        const year = String(date.getFullYear()).substring(2);
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${year}.${month}`;
       }
+      // 1Y
+      const year = String(date.getFullYear()).substring(2);
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${year}.${month}`;
     } catch (e) {
       return String(tickStr || '');
     }
   };
 
   // Format Tooltip label (date/time)
-  const formatTooltipLabel = (labelStr: any) => {
+  const formatTooltipLabel = (labelStr: any): string => {
     try {
       if (!labelStr) return '';
       const date = new Date(labelStr);
@@ -65,7 +66,7 @@ export default function PriceChartCard({
 
   return (
     <CardWrapper
-      title={ticker ? `${ticker} 주가 차트 및 가격 변동` : '주가 차트 및 가격 변동'}
+      title={ticker ? `${ticker} 주가 차트 및 가격 변동` : "주가 차트 및 가격 변동"}
       icon={<LineChart className="w-5 h-5 text-blue-400" />}
       headerRight={
         ticker ? (
@@ -114,9 +115,9 @@ export default function PriceChartCard({
             <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4">
               <span className="text-[10px] text-slate-400 font-bold uppercase">기간 변동률</span>
               {chartData.changePercent !== null ? (
-                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
+                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? "text-blue-400" : "text-rose-400"}`}>
                   {chartData.changePercent >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
-                  <span>{chartData.changePercent >= 0 ? '+' : ''}{chartData.changePercent}%</span>
+                  <span>{chartData.changePercent >= 0 ? "+" : ""}{chartData.changePercent}%</span>
                 </div>
               ) : (
                 <span className="text-sm font-bold text-slate-400">N/A</span>
@@ -154,27 +155,27 @@ export default function PriceChartCard({
                 <XAxis 
                   dataKey="date" 
                   tickFormatter={formatXAxis}
-                  tick={{ fontSize: 9, fill: '#64748b' }}
+                  tick={{ fontSize: 9, fill: "#64748b" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis 
-                  domain={['auto', 'auto']} 
-                  tick={{ fontSize: 9, fill: '#64748b' }}
+                  domain={["auto", "auto"]} 
+                  tick={{ fontSize: 9, fill: "#64748b" }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <ChartTooltip
                   contentStyle={{ 
-                    backgroundColor: 'rgba(15, 23, 42, 0.95)', 
-                    borderColor: '#1e293b', 
-                    borderRadius: '8px',
-                    fontSize: '11px',
-                    color: '#e2e8f0',
-                    padding: '8px'
+                    backgroundColor: "rgba(15, 23, 42, 0.95)", 
+                    borderColor: "#1e293b", 
+                    borderRadius: "8px",
+                    fontSize: "11px",
+                    color: "#e2e8f0",
+                    padding: "8px",
                   }}
                   labelFormatter={formatTooltipLabel}
-                  formatter={(value: any) => [`$${Number(value).toFixed(2)}`, '종가']}
+                  formatter={(value: any) => [`$${Number(value).toFixed(2)}`, "종가"]}
                 />
                 <Area 
                   type="monotone" 

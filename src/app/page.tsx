@@ -1,5 +1,6 @@
 'use client';
 
+import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { stockAnalysisSchema } from '@/app/schema';
@@ -17,10 +18,10 @@ import AnalysisReport from '@/features/stock-analyzer/components/AnalysisReport'
 import { Filing, Fundamentals, MacroData } from '@/features/stock-analyzer/types';
 import { ChartRangeData } from '@/lib/price';
 
-export default function Home() {
+export default function Home(): React.JSX.Element {
   const [tickerInput, setTickerInput] = useState('');
   const [activeTicker, setActiveTicker] = useState('');
-  
+
   // SEC Filings state
   const [filings, setFilings] = useState<Filing[]>([]);
   const [filing10K, setFiling10K] = useState<Filing | null>(null);
@@ -70,11 +71,11 @@ export default function Home() {
   }, []);
 
   // Streaming AI Analysis hook
-  const { 
-    object: analysis, 
-    submit, 
-    isLoading: isAnalyzing, 
-    error: analysisError 
+  const {
+    object: analysis,
+    submit,
+    isLoading: isAnalyzing,
+    error: analysisError,
   } = useObject({
     api: '/api/sec/analyze/stream',
     schema: stockAnalysisSchema,
@@ -161,13 +162,22 @@ export default function Home() {
   };
 
   // Trigger AI Analysis
-  const handleAnalyze = (targetFilings: Filing[], target10K: Filing | null, target10Q: Filing | null, targetForm4: Filing[]) => {
+  const handleAnalyze = (
+    targetFilings: Filing[],
+    target10K: Filing | null,
+    target10Q: Filing | null,
+    targetForm4: Filing[],
+  ) => {
     if (!activeTicker) return;
 
     const virtualFiling: Filing = {
       accessionNumber: 'combined-analysis',
       form: 'SEC 종합',
-      filingDate: new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+      filingDate: new Date().toLocaleDateString('ko-KR', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      }),
       reportDate: '최근 다각 분석',
       description: targetFilings.length > 0
         ? `8-K 수시공시 ${targetFilings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`
@@ -176,12 +186,12 @@ export default function Home() {
     };
 
     setActiveFiling(virtualFiling);
-    submit({ 
-      urls: targetFilings.map(f => f.url), 
+    submit({
+      urls: targetFilings.map((f) => f.url),
       url10K: target10K ? target10K.url : null,
       url10Q: target10Q ? target10Q.url : null,
-      urlsForm4: targetForm4.map(f => f.url),
-      ticker: activeTicker 
+      urlsForm4: targetForm4.map((f) => f.url),
+      ticker: activeTicker,
     });
   };
 
@@ -193,10 +203,10 @@ export default function Home() {
       {/* Main Container */}
       <main className="w-full max-w-none mx-auto px-6 md:px-10 py-8">
         {/* Search Header Form */}
-        <SearchForm 
-          tickerInput={tickerInput} 
-          setTickerInput={setTickerInput} 
-          onSubmit={handleSearch} 
+        <SearchForm
+          tickerInput={tickerInput}
+          setTickerInput={setTickerInput}
+          onSubmit={handleSearch}
         />
 
         {/* Dashboard Layout */}
@@ -205,7 +215,7 @@ export default function Home() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* 1. 글로벌 거시경제 지표 */}
             <div className="lg:col-span-4 h-full">
-              <MacroIndicatorsCard 
+              <MacroIndicatorsCard
                 macroData={macroData}
                 loading={loadingMacro}
                 error={macroError}
@@ -214,7 +224,7 @@ export default function Home() {
 
             {/* 2. 기초 재무 데이터 */}
             <div className="lg:col-span-4 h-full">
-              <FundamentalsCard 
+              <FundamentalsCard
                 ticker={activeTicker}
                 fundamentals={fundamentals}
                 loading={loadingFundamentals}
@@ -223,7 +233,7 @@ export default function Home() {
 
             {/* 3. 최근 SEC 8-K 수시 공시 */}
             <div className="lg:col-span-4 h-full">
-              <FilingList 
+              <FilingList
                 filings={filings}
                 filing10K={filing10K}
                 filing10Q={filing10Q}
@@ -253,7 +263,7 @@ export default function Home() {
 
           {/* Bottom Row: AI Report */}
           <div className="w-full">
-            <AnalysisReport 
+            <AnalysisReport
               ticker={activeTicker}
               activeFiling={activeFiling}
               analysis={analysis}

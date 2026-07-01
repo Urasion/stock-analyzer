@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getPriceChartData } from '@/lib/price';
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
   const ticker = searchParams.get('ticker');
   const range = searchParams.get('range') || '1M';
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   if (!ticker) {
     return NextResponse.json(
       { error: 'Ticker parameter is required' },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     if (!chartData) {
       return NextResponse.json(
         { error: `Failed to fetch chart data for ${ticker}` },
-        { status: 404 }
+        { status: 404 },
       );
     }
     return NextResponse.json(chartData);
@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     console.error('Failed to handle chart data GET:', err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : 'Internal Server Error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

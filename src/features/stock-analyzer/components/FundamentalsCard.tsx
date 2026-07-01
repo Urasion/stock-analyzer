@@ -1,15 +1,11 @@
-"use client";
+'use client';
 
-import { Fundamentals } from '../types';
-import { 
-  BarChart3, 
-  Loader2, 
-  TrendingUp, 
-  TrendingDown
-} from 'lucide-react';
+import * as React from 'react';
+import { BarChart3, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
 import MetricItem from '@/components/MetricItem';
 import InfoTooltip from '@/components/InfoTooltip';
+import { Fundamentals } from '../types';
 
 interface FundamentalsCardProps {
   ticker: string;
@@ -17,17 +13,17 @@ interface FundamentalsCardProps {
   loading: boolean;
 }
 
-export default function FundamentalsCard({ 
-  ticker, 
-  fundamentals, 
-  loading 
-}: FundamentalsCardProps) {
-  const formatPercent = (val: number | null) => {
+export default function FundamentalsCard({
+  ticker,
+  fundamentals,
+  loading,
+}: FundamentalsCardProps): React.JSX.Element {
+  const formatPercent = (val: number | null): string => {
     if (val === null) return 'N/A';
     return `${(val * 100).toFixed(1)}%`;
   };
 
-  const formatPE = (val: number | null) => {
+  const formatPE = (val: number | null): string => {
     if (val === null) return 'N/A';
     return `${val.toFixed(2)}배`;
   };
@@ -89,7 +85,7 @@ export default function FundamentalsCard({
 
   return (
     <CardWrapper
-      title={ticker ? `${ticker} 기초 재무 데이터` : '기업 기초 재무 데이터'}
+      title={ticker ? `${ticker} 기초 재무 데이터` : "기업 기초 재무 데이터"}
       icon={<BarChart3 className="w-5 h-5 text-blue-400" />}
     >
       {loading && (
@@ -146,7 +142,7 @@ export default function FundamentalsCard({
               label="매출 성장률 (전년 동기 대비)"
               value={
                 <span className={`flex items-center gap-1 ${
-                  fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? 'text-blue-400' : 'text-rose-400'
+                  fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? "text-blue-400" : "text-rose-400"
                 }`}>
                   {fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
                   {formatPercent(fundamentals.revenueGrowth)}
@@ -156,12 +152,10 @@ export default function FundamentalsCard({
             />
           </div>
 
-
-
           {/* EPS History Chart */}
           {fundamentals.epsHistory && fundamentals.epsHistory.length > 0 && (() => {
             const sortedEpsHistory = [...fundamentals.epsHistory].sort(
-              (a, b) => getSortScore(b.date) - getSortScore(a.date)
+              (a, b) => getSortScore(b.date) - getSortScore(a.date),
             );
             return (
               <div>
@@ -185,13 +179,13 @@ export default function FundamentalsCard({
                       <div key={index} className="flex justify-between items-center bg-slate-950/30 p-2 rounded-lg border border-slate-800/40 text-[11px]">
                         <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : 'N/A'}</strong></span>
-                          <span className="text-slate-400">실제: <strong className={isBeat ? 'text-blue-400' : 'text-rose-400'}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : 'N/A'}</strong></span>
+                          <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : "N/A"}</strong></span>
+                          <span className="text-slate-400">실제: <strong className={isBeat ? "text-blue-400" : "text-rose-400"}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : "N/A"}</strong></span>
                           {item.actual !== null && item.estimate !== null && (
                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
-                              isBeat ? 'bg-blue-500/10 text-blue-400' : 'bg-rose-500/10 text-rose-400'
+                              isBeat ? "bg-blue-500/10 text-blue-400" : "bg-rose-500/10 text-rose-400"
                             }`}>
-                              {isBeat ? 'Beat' : 'Miss'}
+                              {isBeat ? "Beat" : "Miss"}
                             </span>
                           )}
                         </div>

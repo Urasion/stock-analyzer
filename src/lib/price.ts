@@ -10,23 +10,23 @@ export interface PriceQuote {
 export interface PriceMetrics {
   currentPrice: number | null;
   changePercent: number | null;
-  high30d: number | null;
-  low30d: number | null;
-  volatility30d: number | null;
+  high180d: number | null;
+  low180d: number | null;
+  volatility180d: number | null;
   quotes: PriceQuote[];
 }
 
 /**
- * 최근 30일간의 주가 데이터를 조회하고, 현재 가격, 수익률, 최고/최저가 및 변동성 지표를 계산하여 반환합니다.
+ * 최근 180일(6개월/2분기)간의 주가 데이터를 조회하고, 현재 가격, 수익률, 최고/최저가 및 변동성 지표를 계산하여 반환합니다.
  */
-export async function get30DayPriceMetrics(ticker: string): Promise<PriceMetrics | null> {
+export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetrics | null> {
   try {
     const today = new Date();
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(today.getDate() - 30);
+    const oneHundredEightyDaysAgo = new Date();
+    oneHundredEightyDaysAgo.setDate(today.getDate() - 180);
 
     const chartResult = await yahooFinance.chart(ticker, {
-      period1: thirtyDaysAgo.toISOString().split('T')[0],
+      period1: oneHundredEightyDaysAgo.toISOString().split('T')[0],
       period2: today.toISOString().split('T')[0],
       interval: '1d',
     });
@@ -59,25 +59,25 @@ export async function get30DayPriceMetrics(ticker: string): Promise<PriceMetrics
     const changePercent = firstPrice ? Number((((currentPrice - firstPrice) / firstPrice) * 100).toFixed(2)) : null;
 
     const prices = quotes.map(q => q.close);
-    const high30d = Number(Math.max(...prices).toFixed(2));
-    const low30d = Number(Math.min(...prices).toFixed(2));
+    const high180d = Number(Math.max(...prices).toFixed(2));
+    const low180d = Number(Math.min(...prices).toFixed(2));
 
     // 변동성 계산 (평균 대비 표준편차 비율, Coefficient of Variation)
     const mean = prices.reduce((sum, p) => sum + p, 0) / prices.length;
     const variance = prices.reduce((sum, p) => sum + Math.pow(p - mean, 2), 0) / prices.length;
     const stdDev = Math.sqrt(variance);
-    const volatility30d = mean ? Number(((stdDev / mean) * 100).toFixed(2)) : 0;
+    const volatility180d = mean ? Number(((stdDev / mean) * 100).toFixed(2)) : 0;
 
     return {
       currentPrice,
       changePercent,
-      high30d,
-      low30d,
-      volatility30d,
+      high180d,
+      low180d,
+      volatility180d,
       quotes,
     };
   } catch (err) {
-    console.error(`Error fetching 30-day price metrics for ${ticker}:`, err);
+    console.error(`Error fetching 180-day price metrics for ${ticker}:`, err);
     return null;
   }
 }

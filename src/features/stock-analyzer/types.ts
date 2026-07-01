@@ -48,9 +48,9 @@ export interface PriceQuote {
 export interface PriceMetrics {
   currentPrice: number | null;
   changePercent: number | null;
-  high30d: number | null;
-  low30d: number | null;
-  volatility30d: number | null;
+  high180d: number | null;
+  low180d: number | null;
+  volatility180d: number | null;
   quotes: PriceQuote[];
 }
 

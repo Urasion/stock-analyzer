@@ -10,7 +10,7 @@ const USER_AGENT = 'AntigravityStockAnalyzer/1.0 (antigravity-bot@example.com)';
 import { stockAnalysisSchema } from '@/app/schema';
 import { buildAnalysisPrompt, FundamentalsInput } from './prompts';
 import { getMacroData } from '@/lib/macro';
-import { get30DayPriceMetrics } from '@/lib/price';
+import { get180DayPriceMetrics } from '@/lib/price';
 
 export async function POST(request: NextRequest) {
   // 환경변수 체크
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
           console.warn('Could not fetch quote summary:', err);
           return null;
         }),
-        get30DayPriceMetrics(upperTicker).catch(err => {
+        get180DayPriceMetrics(upperTicker).catch(err => {
           console.warn('Could not fetch price metrics:', err);
           return null;
         }),

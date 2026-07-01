@@ -182,28 +182,28 @@ export default function FundamentalsCard({
               </div>
 
               <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">30일 최고/최저</span>
+                <span className="text-[10px] text-slate-500 font-bold uppercase">180일 최고/최저</span>
                 <span className="text-[10px] font-bold text-slate-300">
-                  ${priceMetrics.high30d} / ${priceMetrics.low30d}
+                  ${priceMetrics.high180d} / ${priceMetrics.low180d}
                 </span>
               </div>
 
               <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
                 <div className="flex items-center gap-0.5">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">30일 변동성</span>
-                  <InfoTooltip content="최근 30일 일일 종가의 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 주가 널뛰기가 심한 고위험 종목임을 나타냅니다." />
+                  <span className="text-[10px] text-slate-500 font-bold uppercase">180일 변동성</span>
+                  <InfoTooltip content="최근 180일(6개월/2분기) 일일 종가의 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 주가 널뛰기가 심한 고위험 종목임을 나타냅니다." />
                 </div>
                 <span className="text-[10px] font-bold text-slate-300">
-                  {priceMetrics.volatility30d}%
+                  {priceMetrics.volatility180d}%
                 </span>
               </div>
             </div>
           )}
 
-          {/* 30-Day Price Chart */}
+          {/* 180-Day Price Chart */}
           {priceMetrics && priceMetrics.quotes && priceMetrics.quotes.length > 0 && (
             <div className="flex flex-col">
-              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">최근 30일 주가 추이</span>
+              <span className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">최근 180일 주가 추이</span>
               <div className="h-28 w-full bg-slate-950/10 rounded-xl border border-slate-900/60 p-1.5 overflow-hidden">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={priceMetrics.quotes} margin={{ top: 5, right: 5, left: -25, bottom: 0 }}>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import YahooFinance from 'yahoo-finance2';
-import { get30DayPriceMetrics } from '@/lib/price';
+import { get180DayPriceMetrics } from '@/lib/price';
 
 const yahooFinance = new YahooFinance();
 
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       yahooFinance.quoteSummary(ticker, {
         modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics'],
       }),
-      get30DayPriceMetrics(ticker).catch(err => {
+      get180DayPriceMetrics(ticker).catch(err => {
         console.error('Failed to fetch price metrics:', err);
         return null;
       })

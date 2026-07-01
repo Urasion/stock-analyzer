@@ -110,7 +110,7 @@ export default function FundamentalsCard({
       )}
 
       {!loading && !ticker && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-500">
+        <div className="flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
           <div className="w-12 h-12 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-3 animate-pulse">
             <BarChart3 className="w-6 h-6" />
           </div>
@@ -121,7 +121,7 @@ export default function FundamentalsCard({
       )}
 
       {!loading && ticker && !fundamentals && (
-        <div className="py-4 text-center text-slate-500 text-xs flex-1 flex items-center justify-center">
+        <div className="py-4 text-center text-slate-400 text-xs flex-1 flex items-center justify-center">
           재무 데이터를 수집하지 못했습니다. (야후 파이낸스 점검 중)
         </div>
       )}
@@ -168,11 +168,11 @@ export default function FundamentalsCard({
 
           {/* Price Metrics Summary Grid */}
           {priceMetrics && (
-            <div className="grid grid-cols-3 gap-2 bg-slate-950/20 p-3 rounded-xl border border-slate-900/50">
+            <div className="grid grid-cols-3 gap-2 bg-slate-950/60 p-3 rounded-xl border border-slate-800/60">
               <div className="flex flex-col gap-0.5">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">현재 주가</span>
+                <span className="text-[10px] text-slate-400 font-bold uppercase">현재 주가</span>
                 <div className="flex items-baseline gap-1 flex-wrap">
-                  <span className="text-xs font-bold text-slate-200">${priceMetrics.currentPrice}</span>
+                  <span className="text-xs font-bold text-slate-100">${priceMetrics.currentPrice}</span>
                   {priceMetrics.changePercent !== null && (
                     <span className={`text-[9px] font-bold ${priceMetrics.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
                       ({priceMetrics.changePercent >= 0 ? '+' : ''}{priceMetrics.changePercent}%)
@@ -181,19 +181,19 @@ export default function FundamentalsCard({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
-                <span className="text-[10px] text-slate-500 font-bold uppercase">180일 최고/최저</span>
-                <span className="text-[10px] font-bold text-slate-300">
+              <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-3">
+                <span className="text-[10px] text-slate-400 font-bold uppercase">180일 최고/최저</span>
+                <span className="text-[10px] font-bold text-slate-100">
                   ${priceMetrics.high180d} / ${priceMetrics.low180d}
                 </span>
               </div>
 
-              <div className="flex flex-col gap-0.5 border-l border-slate-900 pl-3">
+              <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-3">
                 <div className="flex items-center gap-0.5">
-                  <span className="text-[10px] text-slate-500 font-bold uppercase">180일 변동성</span>
+                  <span className="text-[10px] text-slate-400 font-bold uppercase">180일 변동성</span>
                   <InfoTooltip content="최근 180일(6개월/2분기) 일일 종가의 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 주가 널뛰기가 심한 고위험 종목임을 나타냅니다." />
                 </div>
-                <span className="text-[10px] font-bold text-slate-300">
+                <span className="text-[10px] font-bold text-slate-100">
                   {priceMetrics.volatility180d}%
                 </span>
               </div>

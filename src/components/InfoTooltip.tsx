@@ -23,7 +23,7 @@ export default function InfoTooltip({ content, className }: InfoTooltipProps) {
           <button 
             type="button" 
             className={cn(
-              "text-slate-500 hover:text-slate-200 transition-colors cursor-help shrink-0 p-0.5", 
+              "text-slate-400 hover:text-slate-200 transition-colors cursor-help shrink-0 p-0.5", 
               className
             )}
           >

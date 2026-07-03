@@ -76,7 +76,7 @@ interface AnalysisReportProps {
   analysis: DeepPartial<z.infer<typeof stockAnalysisSchema>> | undefined;
   isAnalyzing: boolean;
   error: Error | undefined;
-  onAnalyze?: () => void;
+  onAnalyze?: (hasPosition: boolean, avgPrice: number | null) => void;
 }
 
 export default function AnalysisReport({
@@ -87,6 +87,15 @@ export default function AnalysisReport({
   error,
   onAnalyze,
 }: AnalysisReportProps): React.JSX.Element {
+  const [localHasPosition, setLocalHasPosition] = React.useState(false);
+  const [localAvgPrice, setLocalAvgPrice] = React.useState<string>('');
+
+  // Reset inputs when ticker changes
+  React.useEffect(() => {
+    setLocalHasPosition(false);
+    setLocalAvgPrice('');
+  }, [ticker]);
+
   // Safe fallback and type guard to filter out undefined items during streaming
   const keyDrivers = (analysis?.context?.keyDrivers ?? []).filter((d): d is string => typeof d === 'string');
   const riskFactors = (analysis?.context?.riskFactors ?? []).filter((r): r is string => typeof r === 'string');
@@ -117,22 +126,75 @@ export default function AnalysisReport({
       {/* Empty State / Placeholder */}
       {!activeFiling && !analysis && (
         ticker ? (
-          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-            <div className="w-16 h-16 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-4 animate-pulse">
-              <Gauge className="w-8 h-8" />
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-6 max-w-md mx-auto">
+            <div className="w-12 h-12 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-3 animate-pulse">
+              <Gauge className="w-6 h-6" />
             </div>
-            <h4 className="font-bold text-slate-200 text-lg mb-1">분석 데이터 준비 완료</h4>
-            <p className="text-slate-400 text-sm max-w-sm mb-6">
-              최근 공시 데이터와 재무 및 매크로 지표가 준비되었습니다. 아래 버튼을 클릭하여 AI 종합 분석 리포트를 생성하세요.
+            <h4 className="font-bold text-slate-200 text-base mb-1">분석 데이터 준비 완료</h4>
+            <p className="text-slate-400 text-xs mb-5 leading-relaxed">
+              최근 공시 데이터와 재무 및 매크로 지표가 수집되었습니다. 아래에서 보유하신 포지션을 기입하시면 맞춤형 탈출/대응 가이드라인을 함께 생성합니다.
             </p>
+
+            {/* 포지션 입력 폼 */}
+            <div className="w-full bg-slate-950/40 p-4 rounded-xl border border-slate-800/60 flex flex-col gap-3.5 mb-5 text-left">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-200">주식 보유 여부</span>
+                <div className="flex bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                  <button
+                    type="button"
+                    onClick={() => setLocalHasPosition(false)}
+                    className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                      !localHasPosition
+                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                        : 'bg-transparent text-slate-400 border-transparent hover:text-slate-200'
+                    }`}
+                  >
+                    미보유
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setLocalHasPosition(true)}
+                    className={`px-3 py-1 rounded-md text-[11px] font-semibold transition-all cursor-pointer ${
+                      localHasPosition
+                        ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border border-blue-500/20'
+                        : 'bg-transparent text-slate-400 border-transparent hover:text-slate-200'
+                    }`}
+                  >
+                    보유 중
+                  </button>
+                </div>
+              </div>
+
+              {localHasPosition && (
+                <div className="flex flex-col gap-1.5 transition-all">
+                  <label className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">평균 매수 단가 (Average Cost, USD)</label>
+                  <div className="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-lg px-3 py-2 focus-within:border-blue-500/40 transition-colors">
+                    <span className="text-slate-400 font-bold text-xs">$</span>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      placeholder="예: 150.25"
+                      value={localAvgPrice}
+                      onChange={(e) => setLocalAvgPrice(e.target.value)}
+                      className="bg-transparent border-none outline-none text-slate-200 placeholder-slate-400 text-xs w-full font-medium"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {onAnalyze && (
               <button
-                onClick={onAnalyze}
-                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-slate-950 text-xs font-bold rounded-xl shadow-lg shadow-blue-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                onClick={() => {
+                  const priceVal = localHasPosition ? parseFloat(localAvgPrice) : null;
+                  onAnalyze(localHasPosition, isNaN(priceVal as number) ? null : priceVal);
+                }}
+                className="w-full py-3 bg-blue-600 hover:bg-blue-500 text-slate-950 text-xs font-bold rounded-xl shadow-lg shadow-blue-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
                 type="button"
               >
                 <Sparkles className="w-4 h-4 text-slate-950" />
-                AI 종합 분석 시작
+                AI 포지션 맞춤 분석 시작
               </button>
             )}
           </div>
@@ -152,6 +214,45 @@ export default function AnalysisReport({
       {/* Streaming Content Display */}
       {(activeFiling || analysis) && (
         <div className="flex-1 flex flex-col gap-6">
+          {/* 0. AI 포지션 대응 진단 카드 */}
+          {analysis?.judgment?.positionStrategy && (
+            <div className={`p-4 rounded-xl border flex flex-col gap-3 shadow-md ${
+              analysis.judgment.positionStrategy.recommendation === 'SELL_ALL' || analysis.judgment.positionStrategy.recommendation === 'REDUCE'
+                ? 'border-rose-200 bg-rose-50/50 dark:border-rose-500/30 dark:bg-rose-950/10'
+                : analysis.judgment.positionStrategy.recommendation === 'BUY_MORE' || analysis.judgment.positionStrategy.recommendation === 'HOLD'
+                ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-950/10'
+                : 'border-amber-200 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-950/10'
+            }`}>
+              <div className="flex justify-between items-center flex-wrap gap-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI 포지션 처방</span>
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
+                    analysis.judgment.positionStrategy.recommendation === 'SELL_ALL' || analysis.judgment.positionStrategy.recommendation === 'REDUCE'
+                      ? 'bg-rose-100 text-rose-700 border-rose-200 dark:bg-rose-500/15 dark:text-rose-400 dark:border-rose-500/30'
+                      : analysis.judgment.positionStrategy.recommendation === 'BUY_MORE' || analysis.judgment.positionStrategy.recommendation === 'HOLD'
+                      ? 'bg-emerald-100 text-emerald-700 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-400 dark:border-emerald-500/30'
+                      : 'bg-amber-100 text-amber-700 border-amber-200 dark:bg-amber-500/15 dark:text-amber-400 dark:border-amber-500/30'
+                  }`}>
+                    {analysis.judgment.positionStrategy.recommendation === 'SELL_ALL'
+                      ? '전량 매도 / 손절 권고'
+                      : analysis.judgment.positionStrategy.recommendation === 'REDUCE'
+                      ? '비중 축소 권고'
+                      : analysis.judgment.positionStrategy.recommendation === 'BUY_MORE'
+                      ? '추가 매수 권장 (물타기)'
+                      : analysis.judgment.positionStrategy.recommendation === 'HOLD'
+                      ? '보유 및 홀딩'
+                      : '신규 진입 관망'}
+                  </span>
+                </div>
+                <div className="text-[10px] text-slate-400 font-semibold">
+                  대응 기준가: <strong className="text-slate-100 font-bold">{analysis.judgment.positionStrategy.targetPrice}</strong>
+                </div>
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                {analysis.judgment.positionStrategy.reasoning}
+              </p>
+            </div>
+          )}
           {/* 1. Judgment Block */}
           <div className="p-5 bg-linear-to-br from-slate-950 to-slate-900 rounded-xl border border-slate-800 flex flex-col gap-4 shadow-inner relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>

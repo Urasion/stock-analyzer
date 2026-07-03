@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import YahooFinance from 'yahoo-finance2';
 import { get180DayPriceMetrics } from '@/lib/price';
-
-const yahooFinance = new YahooFinance();
+import { getFundamentalsData } from '@/lib/fundamentals';
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const { searchParams } = new URL(request.url);
@@ -16,9 +14,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const [summary, priceMetrics] = await Promise.all([
-      yahooFinance.quoteSummary(ticker, {
-        modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics'],
+    const [fundamentals, priceMetrics] = await Promise.all([
+      getFundamentalsData(ticker).catch((err) => {
+        console.error('Failed to fetch fundamentals data:', err);
+        return null;
       }),
       get180DayPriceMetrics(ticker).catch((err) => {
         console.error('Failed to fetch price metrics:', err);
@@ -26,34 +25,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       }),
     ]);
 
-    if (!summary) {
+    if (!fundamentals) {
       return NextResponse.json(
         { error: `No summary found for ticker: ${ticker}` },
         { status: 404 },
       );
     }
 
-    const trailingPE = summary.summaryDetail?.trailingPE ?? null;
-    const forwardPE = summary.summaryDetail?.forwardPE ?? null;
-    const priceToBook = summary.defaultKeyStatistics?.priceToBook ?? null;
-    const revenueGrowth = summary.financialData?.revenueGrowth ?? null;
-
-    const rawEarnings = summary.earnings?.earningsChart?.quarterly ?? [];
-    const epsHistory = rawEarnings.map((item: { date: string; actual?: number; estimate?: number }) => ({
-      date: item.date,
-      actual: item.actual ?? null,
-      estimate: item.estimate ?? null,
-    }));
-
     return NextResponse.json({
       ticker,
-      fundamentals: {
-        trailingPE,
-        forwardPE,
-        priceToBook,
-        revenueGrowth,
-        epsHistory,
-      },
+      fundamentals,
       priceMetrics,
     });
   } catch (error) {

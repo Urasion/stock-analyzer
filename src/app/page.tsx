@@ -55,6 +55,10 @@ export default function Home(): React.JSX.Element {
   // Active filing state
   const [activeFiling, setActiveFiling] = useState<Filing | null>(null);
 
+  // Position state for AI Analysis
+  const [hasPosition, setHasPosition] = useState(false);
+  const [avgPrice, setAvgPrice] = useState<number | null>(null);
+
   // Fetch Macro Data on mount
   useEffect(() => {
     const fetchMacroData = async () => {
@@ -136,6 +140,8 @@ export default function Home(): React.JSX.Element {
     setActiveFiling(null);
     setReportData(undefined);
     setFilings([]);
+    setHasPosition(false);
+    setAvgPrice(null);
     setFiling10K(null);
     setFiling10Q(null);
     setFilingsForm4([]);
@@ -186,6 +192,8 @@ export default function Home(): React.JSX.Element {
     target10K: Filing | null,
     target10Q: Filing | null,
     targetForm4: Filing[],
+    hp?: boolean,
+    ap?: number | null,
   ) => {
     if (!activeTicker) return;
 
@@ -205,6 +213,9 @@ export default function Home(): React.JSX.Element {
       url: '',
     };
 
+    const finalHasPosition = hp !== undefined ? hp : hasPosition;
+    const finalAvgPrice = ap !== undefined ? ap : avgPrice;
+
     setActiveFiling(virtualFiling);
     submit({
       urls: targetFilings.map((f) => f.url),
@@ -212,6 +223,8 @@ export default function Home(): React.JSX.Element {
       url10Q: target10Q ? target10Q.url : null,
       urlsForm4: targetForm4.map((f) => f.url),
       ticker: activeTicker,
+      hasPosition: finalHasPosition,
+      avgPrice: finalAvgPrice,
     });
   };
 
@@ -297,7 +310,11 @@ export default function Home(): React.JSX.Element {
               analysis={reportData}
               isAnalyzing={isAnalyzing}
               error={analysisError}
-              onAnalyze={() => handleAnalyze(filings, filing10K, filing10Q, filingsForm4)}
+              onAnalyze={(hp, ap) => {
+                setHasPosition(hp);
+                setAvgPrice(ap);
+                handleAnalyze(filings, filing10K, filing10Q, filingsForm4, hp, ap);
+              }}
             />
           </div>
         </div>

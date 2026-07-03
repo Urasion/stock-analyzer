@@ -61,7 +61,9 @@ export function buildAnalysisPrompt(
   fundamentals: FundamentalsInput | null,
   combinedText: string,
   macroData: MacroData | null,
-  priceMetrics: PriceMetricsInput | null = null
+  priceMetrics: PriceMetricsInput | null = null,
+  hasPosition?: boolean,
+  avgPrice?: number | null
 ): string {
   const trailingPEStr = fundamentals?.trailingPE !== null && fundamentals?.trailingPE !== undefined
     ? `${fundamentals.trailingPE}`
@@ -169,6 +171,25 @@ export function buildAnalysisPrompt(
 `;
   }
 
+  let positionInfoSection = '';
+  if (hasPosition) {
+    const currentPriceVal = priceMetrics?.currentPrice ?? 0;
+    let profitLossText = '계산 불가';
+    if (avgPrice && currentPriceVal) {
+      const diffPercent = ((currentPriceVal - avgPrice) / avgPrice) * 100;
+      const sign = diffPercent >= 0 ? '+' : '';
+      profitLossText = `${sign}${diffPercent.toFixed(2)}% (수익/손실)`;
+    }
+    positionInfoSection = `
+- 주식 보유 상태: 보유 중
+- 평균 매수 단가 (Average Cost): $${avgPrice !== null && avgPrice !== undefined ? avgPrice.toFixed(2) : 'N/A'} (현재가 대비 변동률: ${profitLossText})
+`;
+  } else {
+    positionInfoSection = `
+- 주식 보유 상태: 미보유 (신규 진입 여부 판정 필요)
+`;
+  }
+
   return `
 당신은 월스트리트의 수석 애널리스트이자 주식시장 리스크 관리 전문가입니다.
 다음 기업(${ticker})의 '정밀 재무 흐름', '시장 컨센서스', '수집된 다양한 SEC 공시 데이터', '최근 180일 주가 센티먼트' 및 '미국 연준(FRED)의 거시경제 상황'을 연계하여 종합적인 재무 영향 분석 보고서를 도출하세요.
@@ -200,6 +221,9 @@ ${priceMetricsSection}
 [4. 수집된 SEC 공시 데이터 (8-K, 10-K, 10-Q, Form 4 등)]
 ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
 
+[5. 사용자 보유 포지션 정보 (User Position Info)]
+${positionInfoSection}
+
 [분석 지시사항]
 1. 최근 5개 8-K 수시 공시의 주요 사건들(계약 체결, 시설 한도 증액 등)이 기업의 유동성 및 재무 건전성에 미치는 단기 영향을 분석하세요.
 2. 10-K 및 10-Q에서 추출된 연결손익계산서 및 리스크 요인을 바탕으로, 이번 수시 공시 내용이 장기적 위험요소를 상쇄하거나 매출 성장을 가속화할 수 있는 동력인지 판단하세요.
@@ -217,10 +241,18 @@ ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
     - 내부자 지분율이 극도로 낮거나 최근 매도 일색이라면 경영진 자신감(managementTone) 판정에 반영하고, 기관 투자 비율 변화를 통해 시장 수급의 견조성을 확인하십시오.
     - 동종업계 경쟁사들의 P/E, P/B 멀티플 대비 현재 기업의 밸류에이션(고평가/저평가 여부)을 객관적으로 비교 분석하십시오.
     - 애널리스트들의 의견 대립 편차(목표가 기대 편차)가 크다면, 시장의 불확실성이 크다는 점을 참작하여 최종 분석 신뢰도(confidenceScore)의 보정 근거로 사용하십시오.
+ 8. 제공된 [5. 사용자 보유 포지션 정보]를 기반으로 사용자의 리스크 방어적 관점에서 포지션 대응 전략(positionStrategy)을 구체적으로 도출하여 기입하십시오:
+    - 주식을 이미 보유 중(hasPosition = true)인 경우:
+      - 현재 평단가 대비 수익률, SEC 리스크, 거시경제 악화 등의 요소를 고려하여 '추가 매수(BUY_MORE)', '보유/홀딩(HOLD)', '비중 축소(REDUCE)', '전량 매도/손절(SELL_ALL)' 중 하나의 결정을 추천하십시오.
+      - 만약 펀더멘털이나 가동현금 Runway가 부실하여 부도/희석 리스크가 크고 손실 구간이라면, 추가 매수 자제를 엄격히 권고하고 비중 축소나 손절 대응 시나리오를 추천하십시오.
+    - 주식을 보유하지 않은 상태(hasPosition = false)인 경우:
+      - 신규 진입 대기('WAIT_FOR_ENTRY') 혹은 현재 시세 기준 진입 권장('BUY_MORE' 또는 'HOLD'에 준하는 포지션 전략)을 내리십시오.
+    - targetPrice에는 사용자가 주목해야 할 구체적인 가격 대응 단가(예: "$120 부근 지지 시 추가 매수", "$95 이탈 시 손절", "$140 돌파 시 목표 익절" 등)를 작성하십시오.
+    - reasoning에는 이 포지션 가이드를 내린 합당하고 논리적인 펀더멘털 및 차트 기술적 근거를 2-3문장 이내로 명확히 작성하십시오.
 
 [중요 규칙]
-- details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.
-- sentiment, managementTone, status와 같은 enum 값은 스키마에 정의된 영문 값(예: 'STRONG BUY', 'Confident', 'Beat' 등)을 그대로 사용해야 합니다.
+- details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary, positionStrategy.targetPrice, positionStrategy.reasoning 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.
+- sentiment, managementTone, status, positionStrategy.recommendation과 같은 enum 값은 스키마에 정의된 영문 값(예: 'STRONG BUY', 'Confident', 'Beat', 'BUY_MORE', 'HOLD' 등)을 그대로 사용해야 합니다.
 - confidenceScore는 0부터 100 사이의 백분율 정수값(예: 80, 85, 90)으로 반드시 지정해야 합니다. 10점 만점 기준이나 소수점 비율(0~1)로 작성하면 안 됩니다.
 `;
 }

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { urls, url10K, url10Q, urlsForm4, ticker } = await request.json();
+    const { urls, url10K, url10Q, urlsForm4, ticker, hasPosition, avgPrice } = await request.json();
 
     if (!ticker) {
       return NextResponse.json(
@@ -162,7 +162,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 3. AI 스트리밍 분석 실행 (streamObject)
-    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText, macroData, priceMetricsData);
+    const prompt = buildAnalysisPrompt(upperTicker, fundamentalsData, scrapedText, macroData, priceMetricsData, hasPosition, avgPrice);
 
     const result = streamObject({
       model: google('gemini-2.5-flash'),

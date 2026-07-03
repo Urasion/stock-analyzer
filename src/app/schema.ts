@@ -26,5 +26,10 @@ export const stockAnalysisSchema = z.object({
     confidenceScore: z.number(),
     managementTone: z.enum(['Confident', 'Neutral', 'Cautious']),
     oneLineSummary: z.string(),
+    positionStrategy: z.object({
+      recommendation: z.enum(['BUY_MORE', 'HOLD', 'REDUCE', 'SELL_ALL', 'WAIT_FOR_ENTRY']),
+      targetPrice: z.string(),
+      reasoning: z.string(),
+    }).optional(),
   }),
 });

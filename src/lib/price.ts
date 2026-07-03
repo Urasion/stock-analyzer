@@ -95,6 +95,9 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
     } else if (normalizedRange === '1Y') {
       startDate.setDate(today.getDate() - 365);
       interval = '1d';
+    } else if (normalizedRange === 'ALL') {
+      startDate.setTime(0); // 1970-01-01 (Unix Epoch)
+      interval = '1d';
     } else {
       // 기본값 1M
       startDate.setDate(today.getDate() - 30);

@@ -155,6 +155,7 @@ export default function PriceChartCard({
             <Toggle value="1W">1주</Toggle>
             <Toggle value="1M">1달</Toggle>
             <Toggle value="1Y">1년</Toggle>
+            <Toggle value="ALL">전체</Toggle>
           </ToggleGroup>
         ) : null
       }
@@ -195,8 +196,8 @@ export default function PriceChartCard({
             <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4">
               <span className="text-[10px] text-slate-400 font-bold uppercase">기간 변동률</span>
               {chartData.changePercent !== null ? (
-                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
-                  {chartData.changePercent >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
+                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+                  {chartData.changePercent >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-blue-400" />}
                   <span>{chartData.changePercent >= 0 ? '+' : ''}{chartData.changePercent}%</span>
                 </div>
               ) : (

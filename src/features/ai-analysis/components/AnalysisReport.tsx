@@ -141,50 +141,75 @@ export default function AnalysisReport({
               <div>
                 <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">INVESTMENT SENTIMENT</span>
                 <div className="flex items-center gap-2">
-                  <span className={`text-lg font-extrabold px-3.5 py-1 rounded-full tracking-wider border shadow-md ${
-                    analysis?.judgment?.sentiment === 'STRONG BUY' || analysis?.judgment?.sentiment === 'BUY'
-                      ? "bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-blue-500/5"
-                      : analysis?.judgment?.sentiment === 'STRONG SELL' || analysis?.judgment?.sentiment === 'SELL'
-                      ? "bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5"
-                      : "bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5"
-                  }`}>
-                    {analysis?.judgment?.sentiment || '대기 중...'}
-                  </span>
+                  {analysis?.judgment?.sentiment ? (
+                    <span className={`text-lg font-extrabold px-3.5 py-1 rounded-full tracking-wider border shadow-md ${
+                      analysis.judgment.sentiment === 'STRONG BUY' || analysis.judgment.sentiment === 'BUY'
+                        ? 'bg-blue-500/10 text-blue-400 border-blue-500/30 shadow-blue-500/5'
+                        : analysis.judgment.sentiment === 'STRONG SELL' || analysis.judgment.sentiment === 'SELL'
+                        ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5'
+                        : 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5'
+                    }`}>
+                      {analysis.judgment.sentiment}
+                    </span>
+                  ) : (
+                    <div className="h-8 w-28 bg-slate-800/80 border border-slate-700/50 rounded-full animate-pulse flex items-center justify-center">
+                      <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Evaluating...</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="flex gap-4">
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">TONE</span>
-                  <span className="text-sm font-semibold text-slate-200">
-                    {analysis?.judgment?.managementTone || '분석 중...'}
-                  </span>
+                  {analysis?.judgment?.managementTone ? (
+                    <span className="text-sm font-semibold text-slate-200">
+                      {analysis.judgment.managementTone}
+                    </span>
+                  ) : (
+                    <div className="h-5 w-16 bg-slate-800/60 rounded-md animate-pulse mt-0.5" />
+                  )}
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">CONFIDENCE</span>
-                  <span className="text-sm font-semibold text-slate-200">
-                    {analysis?.judgment?.confidenceScore ? `${analysis.judgment.confidenceScore}%` : '분석 중...'}
-                  </span>
+                  {analysis?.judgment?.confidenceScore ? (
+                    <span className="text-sm font-semibold text-slate-200">
+                      {analysis.judgment.confidenceScore}%
+                    </span>
+                  ) : (
+                    <div className="h-5 w-12 bg-slate-800/60 rounded-md animate-pulse mt-0.5" />
+                  )}
                 </div>
               </div>
             </div>
 
             {/* Progress Bar for Confidence */}
-            {analysis?.judgment?.confidenceScore !== undefined && (
+            {analysis?.judgment?.confidenceScore !== undefined ? (
               <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                 <div
                   className="bg-linear-to-r from-blue-600 to-sky-400 h-1.5 transition-all duration-500"
                   style={{ width: `${analysis.judgment.confidenceScore}%` }}
                 ></div>
               </div>
+            ) : (
+              <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
+                <div className="bg-slate-800/60 w-1/3 h-1.5 rounded-full animate-pulse" />
+              </div>
             )}
 
             {/* One Line Summary */}
             <div className="mt-2 pt-3 border-t border-slate-800/40">
               <span className="text-[10px] text-slate-400 font-bold block mb-1.5 uppercase tracking-wider">AI 한줄 평</span>
-              <p className="text-sm font-medium text-slate-200 italic leading-relaxed">
-                &ldquo;{analysis?.judgment?.oneLineSummary || '공시 파싱 분석이 진행되면 여기에 한줄 요약이 표시됩니다.'}&rdquo;
-              </p>
+              {analysis?.judgment?.oneLineSummary ? (
+                <p className="text-sm font-medium text-slate-200 italic leading-relaxed">
+                  &ldquo;{analysis.judgment.oneLineSummary}&rdquo;
+                </p>
+              ) : (
+                <div className="space-y-1.5 py-1">
+                  <div className="h-3.5 bg-slate-800/60 rounded-sm animate-pulse w-full" />
+                  <div className="h-3.5 bg-slate-800/60 rounded-sm animate-pulse w-5/6" />
+                </div>
+              )}
             </div>
           </div>
 
@@ -197,23 +222,29 @@ export default function AnalysisReport({
                 {analysis?.financials?.revenue?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.revenue.status === 'Beat'
-                      ? "bg-blue-500/10 text-blue-400"
+                      ? 'bg-blue-500/10 text-blue-400'
                       : analysis.financials.revenue.status === 'Miss'
-                      ? "bg-rose-500/10 text-rose-400"
-                      : "bg-amber-500/10 text-amber-400"
+                      ? 'bg-rose-500/10 text-rose-400'
+                      : 'bg-amber-500/10 text-amber-400'
                   }`}>
                     {analysis.financials.revenue.status}
                   </span>
                 )}
               </div>
               <div className="flex items-baseline gap-2">
-                <span className="text-lg font-bold text-slate-100">
-                  {formatRevenueWithKorean(analysis?.financials?.revenue?.actual)}
-                </span>
-                {analysis?.financials?.revenue?.growthYoY && (
-                  <span className="text-xs text-blue-400 font-medium">
-                    (전년 동기 대비 {analysis.financials.revenue.growthYoY})
-                  </span>
+                {analysis?.financials?.revenue?.actual ? (
+                  <>
+                    <span className="text-lg font-bold text-slate-100">
+                      {formatRevenueWithKorean(analysis.financials.revenue.actual)}
+                    </span>
+                    {analysis.financials.revenue.growthYoY && (
+                      <span className="text-xs text-blue-400 font-medium">
+                        (전년 동기 대비 {analysis.financials.revenue.growthYoY})
+                      </span>
+                    )}
+                  </>
+                ) : (
+                  <div className="h-7 w-32 bg-slate-800/60 rounded-md animate-pulse my-0.5" />
                 )}
               </div>
             </div>
@@ -225,18 +256,22 @@ export default function AnalysisReport({
                 {analysis?.financials?.eps?.status && (
                   <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                     analysis.financials.eps.status === 'Beat'
-                      ? "bg-blue-500/10 text-blue-400"
+                      ? 'bg-blue-500/10 text-blue-400'
                       : analysis.financials.eps.status === 'Miss'
-                      ? "bg-rose-500/10 text-rose-400"
-                      : "bg-amber-500/10 text-amber-400"
+                      ? 'bg-rose-500/10 text-rose-400'
+                      : 'bg-amber-500/10 text-amber-400'
                   }`}>
                     {analysis.financials.eps.status}
                   </span>
                 )}
               </div>
-              <span className="text-lg font-bold text-slate-100">
-                {analysis?.financials?.eps?.actual || '집계 중...'}
-              </span>
+              {analysis?.financials?.eps?.actual ? (
+                <span className="text-lg font-bold text-slate-100">
+                  {analysis.financials.eps.actual}
+                </span>
+              ) : (
+                <div className="h-7 w-16 bg-slate-800/60 rounded-md animate-pulse my-0.5" />
+              )}
             </div>
           </div>
 
@@ -247,20 +282,27 @@ export default function AnalysisReport({
               {analysis?.financials?.guidance?.status && (
                 <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
                   analysis.financials.guidance.status === 'Raised'
-                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
+                    ? 'bg-blue-500/15 text-blue-400 border border-blue-500/30'
                     : analysis.financials.guidance.status === 'Lowered'
-                    ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
+                    ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
                     : analysis.financials.guidance.status === 'Maintained'
-                    ? "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                    : "bg-slate-800 text-slate-400"
+                    ? 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
+                    : 'bg-slate-800 text-slate-400'
                 }`}>
                   {analysis.financials.guidance.status}
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-200 leading-relaxed font-medium">
-              {analysis?.financials?.guidance?.details || '가이던스 발표 데이터 검토 중...'}
-            </p>
+            {analysis?.financials?.guidance?.details ? (
+              <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                {analysis.financials.guidance.details}
+              </p>
+            ) : (
+              <div className="space-y-1.5 py-1">
+                <div className="h-3 bg-slate-800/60 rounded-sm animate-pulse w-full" />
+                <div className="h-3 bg-slate-800/60 rounded-sm animate-pulse w-5/6" />
+              </div>
+            )}
           </div>
 
           {/* 4. Drivers & Risks Grid */}
@@ -280,7 +322,14 @@ export default function AnalysisReport({
                     </li>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-400">핵심 드라이버 분석 대기 중...</span>
+                  <div className="space-y-2 py-1">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-3.5 h-3.5 rounded-full bg-slate-800/60 shrink-0 animate-pulse" />
+                        <div className="h-3 bg-slate-800/60 rounded-sm animate-pulse w-11/12" />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </ul>
             </div>
@@ -300,7 +349,14 @@ export default function AnalysisReport({
                     </li>
                   ))
                 ) : (
-                  <span className="text-xs text-slate-400">리스크 요인 분석 대기 중...</span>
+                  <div className="space-y-2 py-1">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        <div className="w-3.5 h-3.5 rounded-full bg-slate-800/60 shrink-0 animate-pulse" />
+                        <div className="h-3 bg-slate-800/60 rounded-sm animate-pulse w-11/12" />
+                      </div>
+                    ))}
+                  </div>
                 )}
               </ul>
             </div>

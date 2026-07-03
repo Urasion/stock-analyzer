@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useState, useEffect } from 'react';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
+import { z } from 'zod';
 import { stockAnalysisSchema } from '@/app/schema';
 
 // Components
@@ -19,6 +20,10 @@ import { Filing } from '@/types';
 import { Fundamentals } from '@/features/fundamentals/types';
 import { MacroData } from '@/features/macro-indicators/types';
 import { ChartRangeData } from '@/features/price-chart/types';
+
+type DeepPartial<T> = T extends object ? {
+  [P in keyof T]?: DeepPartial<T[P]>;
+} : T;
 
 export default function Home(): React.JSX.Element {
   const [tickerInput, setTickerInput] = useState('');
@@ -83,6 +88,16 @@ export default function Home(): React.JSX.Element {
     schema: stockAnalysisSchema,
   });
 
+  // Local state to manage report data and allow manual reset
+  const [reportData, setReportData] = useState<DeepPartial<z.infer<typeof stockAnalysisSchema>> | undefined>(undefined);
+
+  // Sync streaming analysis to local state
+  useEffect(() => {
+    if (analysis) {
+      setReportData(analysis);
+    }
+  }, [analysis]);
+
   // Fetch Price Chart Data
   const fetchChartData = async (ticker: string, range: string) => {
     setLoadingChart(true);
@@ -118,6 +133,7 @@ export default function Home(): React.JSX.Element {
 
     setActiveTicker(queryTicker);
     setActiveFiling(null);
+    setReportData(undefined);
     setFilings([]);
     setFiling10K(null);
     setFiling10Q(null);
@@ -172,6 +188,7 @@ export default function Home(): React.JSX.Element {
   ) => {
     if (!activeTicker) return;
 
+    setReportData(undefined);
     const virtualFiling: Filing = {
       accessionNumber: 'combined-analysis',
       form: 'SEC 종합',
@@ -267,7 +284,7 @@ export default function Home(): React.JSX.Element {
             <AnalysisReport
               ticker={activeTicker}
               activeFiling={activeFiling}
-              analysis={analysis}
+              analysis={reportData}
               isAnalyzing={isAnalyzing}
               error={analysisError}
               onAnalyze={() => handleAnalyze(filings, filing10K, filing10Q, filingsForm4)}

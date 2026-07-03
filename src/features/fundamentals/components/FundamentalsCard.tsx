@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { BarChart3, Loader2, TrendingUp, TrendingDown, DollarSign, Users, Target, Activity } from 'lucide-react';
+import { BarChart3, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
 import MetricItem from '@/components/MetricItem';
 import InfoTooltip from '@/components/InfoTooltip';
@@ -26,17 +26,6 @@ export default function FundamentalsCard({
   const formatPE = (val: number | null): string => {
     if (val === null) return 'N/A';
     return `${val.toFixed(2)}배`;
-  };
-
-  const formatCash = (val: number | null | undefined): string => {
-    if (val === null || val === undefined) return 'N/A';
-    return `$${(val / 1000000).toFixed(1)}M`;
-  };
-
-  const formatRunway = (months: number | null | undefined): string => {
-    if (months === null || months === undefined) return 'N/A';
-    if (months === 999) return '안정적 (순유입)';
-    return `${months.toFixed(1)}개월`;
   };
 
   const formatQuarterDate = (dateStr: string): string => {
@@ -124,7 +113,7 @@ export default function FundamentalsCard({
       )}
 
       {!loading && ticker && fundamentals && (
-        <div className="flex flex-col gap-6 flex-1 overflow-y-auto">
+        <div className="flex flex-col gap-5 flex-1 overflow-y-auto">
           {/* 섹션 1: 기본 밸류에이션 및 성장성 */}
           <div>
             <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-2.5">기본 밸류에이션 및 성장성</span>
@@ -158,89 +147,6 @@ export default function FundamentalsCard({
               />
             </div>
           </div>
-
-          <hr className="border-slate-800/60" />
-
-          {/* 섹션 2: 유동성 및 주주 구성 */}
-          <div>
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-2.5">재무 유동성 및 주주 지분 구조</span>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <MetricItem
-                label="가용 현금 자산"
-                value={formatCash(fundamentals.cashAndEquivalents)}
-                tooltipContent="대차대조표상 기업이 즉시 현금화하여 운영비나 인프라 증설에 사용할 수 있는 현금 및 단기 투자 자산의 총합입니다."
-              />
-              <MetricItem
-                label="예상 현금 런웨이 (Runway)"
-                value={
-                  <span className={`font-bold ${
-                    fundamentals.cashRunwayMonths && fundamentals.cashRunwayMonths < 12 
-                      ? "text-rose-400" 
-                      : fundamentals.cashRunwayMonths === 999 
-                        ? "text-blue-400" 
-                        : "text-slate-200"
-                  }`}>
-                    {formatRunway(fundamentals.cashRunwayMonths)}
-                  </span>
-                }
-                tooltipContent="현재 현금 소모 속도(Cash Burn) 대비 가용 자산으로 버틸 수 있는 예상 개월 수입니다. 12개월 미만인 경우 자금난 우려가 있습니다."
-              />
-              <MetricItem
-                label="내부자 지분율 (Insider)"
-                value={fundamentals.insidersPercentHeld ?? 'N/A'}
-                tooltipContent="회사 경영진 및 주요 주주(내부자)가 보유한 주식의 지분율입니다. 지분율이 높을수록 책임 경영 및 주주 친화 경영 가능성이 높습니다."
-              />
-              <MetricItem
-                label="기관 투자자 지분율 (Institution)"
-                value={fundamentals.institutionsPercentHeld ?? 'N/A'}
-                tooltipContent="투자은행, 뮤추얼 펀드, 연기금 등 전문 금융 기관들이 보유한 주식의 비율입니다. 기관 지분율이 높을수록 주가 안정성이 높아지는 경향이 있습니다."
-              />
-            </div>
-          </div>
-
-          <hr className="border-slate-800/60" />
-
-          {/* 섹션 3: 시장 컨센서스 분산도 */}
-          <div>
-            <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-2.5">시장 컨센서스 기대 편차</span>
-            <div className="grid grid-cols-1 gap-3">
-              <MetricItem
-                label="목표가 기대 편차율 (Variance)"
-                value={
-                  fundamentals.targetPriceDeviationPercent !== undefined && fundamentals.targetPriceDeviationPercent !== null ? (
-                    <span className={fundamentals.targetPriceDeviationPercent > 40 ? "text-amber-400" : "text-slate-200"}>
-                      {fundamentals.targetPriceDeviationPercent.toFixed(1)}%
-                    </span>
-                  ) : 'N/A'
-                }
-                tooltipContent="월가 애널리스트들의 최고 목표가와 최저 목표가의 격차 비율입니다. 이 수치가 높을수록 기업의 미래 가치에 대한 시장의 의견 대립과 불확실성이 크다는 뜻입니다."
-              />
-            </div>
-          </div>
-
-          {/* 동종업계 경쟁사 비교 */}
-          {fundamentals.peerMetrics && fundamentals.peerMetrics.length > 0 && (
-            <>
-              <hr className="border-slate-800/60" />
-              <div>
-                <span className="text-slate-400 text-[10px] font-bold uppercase tracking-wider block mb-2.5">동종업계 경쟁사 비교 (Peers)</span>
-                <div className="flex flex-col gap-2">
-                  <div className="grid grid-cols-3 text-[10px] text-slate-400 font-semibold px-2">
-                    <span>경쟁사 티커</span>
-                    <span className="text-center">선행 PER</span>
-                    <span className="text-right">PBR</span>
-                  </div>
-                  {fundamentals.peerMetrics.map((peer, idx) => (
-                    <div key={idx} className="grid grid-cols-3 bg-slate-950/40 px-2 py-1.5 rounded-md border border-slate-800/50 text-[11px]">
-                      <span className="font-bold text-blue-400">{peer.ticker}</span>
-                      <span className="text-center text-slate-200">{typeof peer.forwardPE === 'number' ? `${peer.forwardPE.toFixed(2)}배` : peer.forwardPE}</span>
-                      <span className="text-right text-slate-200">{typeof peer.priceToBook === 'number' ? `${peer.priceToBook.toFixed(2)}배` : peer.priceToBook}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
 
           <hr className="border-slate-800/60" />
 

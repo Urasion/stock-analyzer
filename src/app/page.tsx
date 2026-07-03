@@ -11,6 +11,7 @@ import Navbar from '@/components/Navbar';
 import SearchForm from '@/features/search/components/SearchForm';
 import FilingList from '@/features/sec-filings/components/FilingList';
 import FundamentalsCard from '@/features/fundamentals/components/FundamentalsCard';
+import LiquidityAndConsensusCard from '@/features/fundamentals/components/LiquidityAndConsensusCard';
 import MacroIndicatorsCard from '@/features/macro-indicators/components/MacroIndicatorsCard';
 import PriceChartCard from '@/features/price-chart/components/PriceChartCard';
 import AnalysisReport from '@/features/ai-analysis/components/AnalysisReport';
@@ -241,9 +242,14 @@ export default function Home(): React.JSX.Element {
               />
             </div>
 
-            {/* 2. 기초 재무 데이터 */}
-            <div className="lg:col-span-4 h-full">
+            {/* 2. 기초 재무 데이터 및 재무 안전성 */}
+            <div className="lg:col-span-4 flex flex-col gap-8">
               <FundamentalsCard
+                ticker={activeTicker}
+                fundamentals={fundamentals}
+                loading={loadingFundamentals}
+              />
+              <LiquidityAndConsensusCard
                 ticker={activeTicker}
                 fundamentals={fundamentals}
                 loading={loadingFundamentals}

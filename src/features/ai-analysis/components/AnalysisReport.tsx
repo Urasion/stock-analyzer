@@ -37,6 +37,39 @@ type DeepPartial<T> = T extends object ? {
   [P in keyof T]?: DeepPartial<T[P]>;
 } : T;
 
+const sentimentMap: Record<string, string> = {
+  'STRONG BUY': '적극 매수',
+  'BUY': '매수',
+  'HOLD': '관망',
+  'SELL': '매도',
+  'STRONG SELL': '적극 매도',
+};
+
+const toneMap: Record<string, string> = {
+  'Positive': '긍정적',
+  'Bullish': '낙관적',
+  'Negative': '부정적',
+  'Bearish': '비관적',
+  'Neutral': '중립적',
+  'Cautious': '신중함',
+  'Confident': '자신감 넘침',
+  'Optimistic': '낙관적',
+  'Concerned': '우려 섞임',
+};
+
+const getConfidencePercentage = (score: number | undefined | null): number => {
+  if (score === undefined || score === null) return 0;
+  if (score <= 1 && score > 0) return score * 100;
+  if (score <= 10 && score > 1) return score * 10;
+  return score;
+};
+
+const formatConfidenceScore = (score: number | undefined | null): string => {
+  if (score === undefined || score === null) return '분석 중...';
+  const pct = getConfidencePercentage(score);
+  return `${Math.round(pct)}%`;
+};
+
 interface AnalysisReportProps {
   ticker: string;
   activeFiling: Filing | null;
@@ -119,27 +152,13 @@ export default function AnalysisReport({
       {/* Streaming Content Display */}
       {(activeFiling || analysis) && (
         <div className="flex-1 flex flex-col gap-6">
-          {/* Active Document Indicator */}
-          {activeFiling && (
-            <div className="p-3 bg-slate-950/60 rounded-xl border border-slate-800/60 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-slate-400" />
-                <span className="text-xs text-slate-200 font-bold">{ticker}</span>
-                <span className="text-[10px] bg-slate-900 border border-slate-800 text-slate-400 px-1.5 py-0.5 rounded font-mono">
-                  {activeFiling.accessionNumber.slice(0, 15)}...
-                </span>
-              </div>
-              <span className="text-[10px] text-slate-400">Report Date: {activeFiling.reportDate}</span>
-            </div>
-          )}
-
           {/* 1. Judgment Block */}
           <div className="p-5 bg-linear-to-br from-slate-950 to-slate-900 rounded-xl border border-slate-800 flex flex-col gap-4 shadow-inner relative overflow-hidden">
             <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
             <div className="flex justify-between items-center flex-wrap gap-3">
               <div>
-                <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">INVESTMENT SENTIMENT</span>
+                <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">투자 의견 (Sentiment)</span>
                 <div className="flex items-center gap-2">
                   {analysis?.judgment?.sentiment ? (
                     <span className={`text-lg font-extrabold px-3.5 py-1 rounded-full tracking-wider border shadow-md ${
@@ -149,7 +168,7 @@ export default function AnalysisReport({
                         ? 'bg-rose-500/10 text-rose-400 border-rose-500/30 shadow-rose-500/5'
                         : 'bg-amber-500/10 text-amber-400 border-amber-500/30 shadow-amber-500/5'
                     }`}>
-                      {analysis.judgment.sentiment}
+                      {sentimentMap[analysis.judgment.sentiment] || analysis.judgment.sentiment}
                     </span>
                   ) : (
                     <div className="h-8 w-28 bg-slate-800/80 border border-slate-700/50 rounded-full animate-pulse flex items-center justify-center">
@@ -161,20 +180,20 @@ export default function AnalysisReport({
 
               <div className="flex gap-4">
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">TONE</span>
+                  <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">경영진 어조 (Tone)</span>
                   {analysis?.judgment?.managementTone ? (
                     <span className="text-sm font-semibold text-slate-200">
-                      {analysis.judgment.managementTone}
+                      {toneMap[analysis.judgment.managementTone] || analysis.judgment.managementTone}
                     </span>
                   ) : (
                     <div className="h-5 w-16 bg-slate-800/60 rounded-md animate-pulse mt-0.5" />
                   )}
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">CONFIDENCE</span>
-                  {analysis?.judgment?.confidenceScore ? (
+                  <span className="text-[10px] text-slate-400 font-bold block mb-1 uppercase tracking-wider">분석 신뢰도 (Confidence)</span>
+                  {analysis?.judgment?.confidenceScore !== undefined ? (
                     <span className="text-sm font-semibold text-slate-200">
-                      {analysis.judgment.confidenceScore}%
+                      {formatConfidenceScore(analysis.judgment.confidenceScore)}
                     </span>
                   ) : (
                     <div className="h-5 w-12 bg-slate-800/60 rounded-md animate-pulse mt-0.5" />
@@ -188,7 +207,7 @@ export default function AnalysisReport({
               <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
                 <div
                   className="bg-linear-to-r from-blue-600 to-sky-400 h-1.5 transition-all duration-500"
-                  style={{ width: `${analysis.judgment.confidenceScore}%` }}
+                  style={{ width: `${getConfidencePercentage(analysis.judgment.confidenceScore)}%` }}
                 ></div>
               </div>
             ) : (

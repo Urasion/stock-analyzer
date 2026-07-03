@@ -154,6 +154,7 @@ ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
 [중요 규칙]
 - details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.
 - sentiment, managementTone, status와 같은 enum 값은 스키마에 정의된 영문 값(예: 'STRONG BUY', 'Confident', 'Beat' 등)을 그대로 사용해야 합니다.
+- confidenceScore는 0부터 100 사이의 백분율 정수값(예: 80, 85, 90)으로 반드시 지정해야 합니다. 10점 만점 기준이나 소수점 비율(0~1)로 작성하면 안 됩니다.
 `;
 }
 

@@ -48,9 +48,9 @@ export interface FundamentalsInput {
 export interface PriceMetricsInput {
   currentPrice: number | null;
   changePercent: number | null;
-  high180d: number | null;
-  low180d: number | null;
-  volatility180d: number | null;
+  high365d: number | null;
+  low365d: number | null;
+  volatility365d: number | null;
 }
 
 /**
@@ -159,15 +159,15 @@ export function buildAnalysisPrompt(
 `;
   }
 
-  // 최근 180일 주가 지표 구성
+  // 최근 365일 주가 지표 구성
   let priceMetricsSection = '최근 주가 데이터 없음';
   if (priceMetrics) {
     const changeDirection = (priceMetrics.changePercent ?? 0) >= 0 ? '상승' : '하락';
     priceMetricsSection = `
 - 현재 주가: $${priceMetrics.currentPrice}
-- 최근 180일(6개월/2분기) 누적 주가 변동률: ${priceMetrics.changePercent?.toFixed(2)}% (${changeDirection})
-- 최근 180일 최고가: $${priceMetrics.high180d} / 최저가: $${priceMetrics.low180d}
-- 최근 180일 주가 변동성 (평균 대비 표준편차 비율): ${priceMetrics.volatility180d?.toFixed(2)}%
+- 최근 365일(1년/4분기) 누적 주가 변동률: ${priceMetrics.changePercent?.toFixed(2)}% (${changeDirection})
+- 최근 365일 최고가: $${priceMetrics.high365d} / 최저가: $${priceMetrics.low365d}
+- 최근 365일 주가 변동성 (평균 대비 표준편차 비율): ${priceMetrics.volatility365d?.toFixed(2)}%
 `;
   }
 
@@ -192,7 +192,7 @@ export function buildAnalysisPrompt(
 
   return `
 당신은 월스트리트의 수석 애널리스트이자 주식시장 리스크 관리 전문가입니다.
-다음 기업(${ticker})의 '정밀 재무 흐름', '시장 컨센서스', '수집된 다양한 SEC 공시 데이터', '최근 180일 주가 센티먼트' 및 '미국 연준(FRED)의 거시경제 상황'을 연계하여 종합적인 재무 영향 분석 보고서를 도출하세요.
+다음 기업(${ticker})의 '정밀 재무 흐름', '시장 컨센서스', '수집된 다양한 SEC 공시 데이터', '최근 365일 주가 센티먼트' 및 '미국 연준(FRED)의 거시경제 상황'을 연계하여 종합적인 재무 영향 분석 보고서를 도출하세요.
 
 [1. 기업의 재무 맥락 및 전망 (Fundamentals & Consensus)]
 - PER 현황: 현재 PER ${trailingPEStr}배 (선행 PER ${forwardPEStr}배) / PBR: ${pbrStr}배
@@ -215,7 +215,7 @@ ${peerMetricsStr}
 [2. 미국 거시경제 상황 (Macroeconomic Context - FRED API)]
 ${macroSection}
 
-[3. 최근 180일 주가 추이 및 시장 센티먼트 (Recent 180-Day Price & Sentiment)]
+[3. 최근 365일 주가 추이 및 시장 센티먼트 (Recent 365-Day Price & Sentiment)]
 ${priceMetricsSection}
 
 [4. 수집된 SEC 공시 데이터 (8-K, 10-K, 10-Q, Form 4 등)]
@@ -232,8 +232,8 @@ ${positionInfoSection}
    - 현재 미국 기준금리 수준이 해당 기업의 신규 자금 조달 비용(부채 이자 부담) 및 현금 흐름에 미칠 압박 정도를 진단하십시오.
    - 장단기 금리차가 역전(음수)되어 있는 경우, 향후 경기 둔화 가능성 대비 이 기업(특히 한계기업/적자기업/개잡주)의 비즈니스 안정성 및 부도 위험을 가치평가에 반영하십시오.
    - 소비자물가상승률(CPI YoY) 및 실업률 추세가 기업의 생산 비용 상승(마진 훼손 여부)과 제품 수요에 미칠 단기/중기적 영향을 평가하십시오.
-5. 제공된 [3. 최근 180일 주가 추이 및 시장 센티먼트] 정보를 분석에 연계하십시오:
-   - 최근 180일 주가 변동성(평균 대비 표준편차 비율)이 극도로 높거나 주가가 폭락하는 상황에서 악재 공시가 연이어 발생했다면, 시장의 공포 심리 및 신용/추가 담보 리스크를 강조해 주십시오.
+5. 제공된 [3. 최근 365일 주가 추이 및 시장 센티먼트] 정보를 분석에 연계하십시오:
+   - 최근 365일 주가 변동성(평균 대비 표준편차 비율)이 극도로 높거나 주가가 폭락하는 상황에서 악재 공시가 연이어 발생했다면, 시장의 공포 심리 및 신용/추가 담보 리스크를 강조해 주십시오.
    - 반대로 주가가 최근 급등하여 변동성이 높은 상태에서 호재성 공시가 났다면, 해당 공시가 실체 없는 테마성 거품(Pump & Dump)인지 혹은 실제 펀더멘털 개선을 유도할 견조한 모멘텀인지 분석하십시오.
  6. 분석 결과 도출되는 매출액(revenue)이나 EPS, 가이던스 등의 실질 값은 공시 원문과 위 제공된 '재무 맥락' 수치들을 토대로 정확하게 작성하세요. (정보 부재 시 '집계 중' 혹은 'N/A'가 아닌, 제공된 시장 컨센서스 및 과거 매출 데이터를 토대로 유추하여 합당한 가치평가를 제시하십시오.)
  7. 제공된 [1-2. 추가 재무 안전성, 수급 및 경쟁사 지표]를 분석 및 최종 신뢰도 점수(confidenceScore) 산정에 적극 반영하십시오:
@@ -247,11 +247,12 @@ ${positionInfoSection}
       - 만약 펀더멘털이나 가동현금 Runway가 부실하여 부도/희석 리스크가 크고 손실 구간이라면, 추가 매수 자제를 엄격히 권고하고 비중 축소나 손절 대응 시나리오를 추천하십시오.
     - 주식을 보유하지 않은 상태(hasPosition = false)인 경우:
       - 신규 진입 대기('WAIT_FOR_ENTRY') 혹은 현재 시세 기준 진입 권장('BUY_MORE' 또는 'HOLD'에 준하는 포지션 전략)을 내리십시오.
-    - targetPrice에는 사용자가 주목해야 할 구체적인 가격 대응 단가(예: "$120 부근 지지 시 추가 매수", "$95 이탈 시 손절", "$140 돌파 시 목표 익절" 등)를 작성하십시오.
+    - buyMorePrice에는 추가 매수 지점 단가 및 실행 조치 조건(예: "$340 부근 지지 시 추가 매수", "$95 이탈 시 추가 매수 자제/대기", "추가 매수 보류")을 자연스러운 문구로 작성하십시오.
+    - longTermTarget에는 본질가치를 바탕으로 한 기업의 장기 목표 가격(예: "장기 목표가 $500 상향 조정", "장기 목표가 $130 유지", "장기 목표가 설정 불가")을 자연스러운 문구로 작성하십시오.
     - reasoning에는 이 포지션 가이드를 내린 합당하고 논리적인 펀더멘털 및 차트 기술적 근거를 2-3문장 이내로 명확히 작성하십시오.
 
 [중요 규칙]
-- details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary, positionStrategy.targetPrice, positionStrategy.reasoning 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.
+- details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary, positionStrategy.buyMorePrice, positionStrategy.longTermTarget, positionStrategy.reasoning 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.
 - sentiment, managementTone, status, positionStrategy.recommendation과 같은 enum 값은 스키마에 정의된 영문 값(예: 'STRONG BUY', 'Confident', 'Beat', 'BUY_MORE', 'HOLD' 등)을 그대로 사용해야 합니다.
 - confidenceScore는 0부터 100 사이의 백분율 정수값(예: 80, 85, 90)으로 반드시 지정해야 합니다. 10점 만점 기준이나 소수점 비율(0~1)로 작성하면 안 됩니다.
 `;

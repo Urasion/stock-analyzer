@@ -28,7 +28,8 @@ export const stockAnalysisSchema = z.object({
     oneLineSummary: z.string(),
     positionStrategy: z.object({
       recommendation: z.enum(['BUY_MORE', 'HOLD', 'REDUCE', 'SELL_ALL', 'WAIT_FOR_ENTRY']),
-      targetPrice: z.string(),
+      buyMorePrice: z.string(),
+      longTermTarget: z.string(),
       reasoning: z.string(),
     }).optional(),
   }),

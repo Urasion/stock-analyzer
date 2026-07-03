@@ -216,14 +216,15 @@ export default function AnalysisReport({
         <div className="flex-1 flex flex-col gap-6">
           {/* 0. AI 포지션 대응 진단 카드 */}
           {analysis?.judgment?.positionStrategy && (
-            <div className={`p-4 rounded-xl border flex flex-col gap-3 shadow-md ${
+            <div className={`p-5 rounded-xl border flex flex-col gap-4 shadow-md ${
               analysis.judgment.positionStrategy.recommendation === 'SELL_ALL' || analysis.judgment.positionStrategy.recommendation === 'REDUCE'
                 ? 'border-rose-200 bg-rose-50/50 dark:border-rose-500/30 dark:bg-rose-950/10'
                 : analysis.judgment.positionStrategy.recommendation === 'BUY_MORE' || analysis.judgment.positionStrategy.recommendation === 'HOLD'
                 ? 'border-emerald-200 bg-emerald-50/50 dark:border-emerald-500/30 dark:bg-emerald-950/10'
                 : 'border-amber-200 bg-amber-50/50 dark:border-amber-500/30 dark:bg-amber-950/10'
             }`}>
-              <div className="flex justify-between items-center flex-wrap gap-2 text-xs">
+              {/* Header Row */}
+              <div className="flex justify-between items-center flex-wrap gap-2 pb-2 border-b border-slate-800/10 dark:border-slate-800/30">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">AI 포지션 처방</span>
                   <span className={`text-[10px] font-bold px-2 py-0.5 rounded border ${
@@ -244,13 +245,31 @@ export default function AnalysisReport({
                       : '신규 진입 관망'}
                   </span>
                 </div>
-                <div className="text-[10px] text-slate-400 font-semibold">
-                  대응 기준가: <strong className="text-slate-100 font-bold">{analysis.judgment.positionStrategy.targetPrice}</strong>
+              </div>
+
+              {/* Split Price Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 bg-slate-950/10 dark:bg-slate-950/40 p-3 rounded-lg border border-slate-800/20 dark:border-slate-800/40">
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">추가 매수 지점</span>
+                  <span className="text-xs font-extrabold text-slate-100">
+                    {analysis.judgment.positionStrategy.buyMorePrice || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col gap-0.5">
+                  <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">장기 목표가</span>
+                  <span className="text-xs font-extrabold text-slate-100">
+                    {analysis.judgment.positionStrategy.longTermTarget || 'N/A'}
+                  </span>
                 </div>
               </div>
-              <p className="text-xs text-slate-200 leading-relaxed font-medium">
-                {analysis.judgment.positionStrategy.reasoning}
-              </p>
+
+              {/* Reasoning Description */}
+              <div className="flex flex-col gap-1">
+                <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">처방 사유 및 근거</span>
+                <p className="text-xs text-slate-200 leading-relaxed font-medium">
+                  {analysis.judgment.positionStrategy.reasoning}
+                </p>
+              </div>
             </div>
           )}
           {/* 1. Judgment Block */}

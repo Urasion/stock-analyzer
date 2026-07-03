@@ -16,3 +16,9 @@ export interface MacroData {
   yieldCurveSpread: YieldCurveIndicator;
   unemploymentRate: MacroIndicator;
 }
+
+export interface FredObservation {
+  date: string;
+  value: string;
+}
+

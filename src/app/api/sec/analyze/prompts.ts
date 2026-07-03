@@ -1,4 +1,4 @@
-import { MacroData } from '@/lib/macro';
+import { MacroData } from '@/features/macro-indicators/types';
 
 export interface EPSHistoryItem {
   date: string;

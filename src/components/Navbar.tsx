@@ -14,10 +14,6 @@ export default function Navbar() {
           </span>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs font-semibold px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400 flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span>
-            Gemini 3.5 Flash Model Configured
-          </div>
           <ThemeToggle />
         </div>
       </div>

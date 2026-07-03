@@ -30,7 +30,7 @@ export const ToggleGroup = React.forwardRef<HTMLDivElement, ToggleGroupProps>(
       <div
         ref={ref}
         className={cn(
-          'inline-flex items-center justify-center rounded-lg bg-slate-100 p-1 text-slate-500 border border-slate-200 dark:bg-slate-900/60 dark:text-slate-400 dark:border-slate-800/40',
+          'inline-flex items-center justify-center rounded-lg bg-slate-950 p-1 text-slate-400 border border-slate-900/60',
           className,
         )}
         {...props}

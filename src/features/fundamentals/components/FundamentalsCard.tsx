@@ -115,7 +115,7 @@ export default function FundamentalsCard({
       {!loading && ticker && fundamentals && (
         <div className="flex flex-col gap-5 flex-1">
           {/* Metrics Grid */}
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* 현재 PER (Trailing PE) */}
             <MetricItem
               label="현재 PER (Trailing PE)"
@@ -176,13 +176,13 @@ export default function FundamentalsCard({
                   {sortedEpsHistory.map((item, index) => {
                     const isBeat = item.actual !== null && item.estimate !== null && item.actual >= item.estimate;
                     return (
-                      <div key={index} className="flex justify-between items-center bg-slate-950/30 p-2 rounded-lg border border-slate-800/40 text-[11px]">
+                      <div key={index} className="flex flex-col min-[400px]:flex-row justify-between min-[400px]:items-center items-start gap-2 bg-slate-950/30 p-2.5 rounded-lg border border-slate-800/40 text-[11px]">
                         <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-3">
                           <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : "N/A"}</strong></span>
                           <span className="text-slate-400">실제: <strong className={isBeat ? "text-blue-400" : "text-rose-400"}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : "N/A"}</strong></span>
                           {item.actual !== null && item.estimate !== null && (
-                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${
                               isBeat ? "bg-blue-500/10 text-blue-400" : "bg-rose-500/10 text-rose-400"
                             }`}>
                               {isBeat ? "Beat" : "Miss"}

@@ -21,12 +21,6 @@ interface FilingListProps {
   activeFiling: Filing | null;
   isAnalyzing: boolean;
   activeTicker: string;
-  onAnalyze: (
-    filings: Filing[],
-    filing10K: Filing | null,
-    filing10Q: Filing | null,
-    filingsForm4: Filing[],
-  ) => void;
 }
 
 export default function FilingList({
@@ -39,7 +33,6 @@ export default function FilingList({
   activeFiling,
   isAnalyzing,
   activeTicker,
-  onAnalyze,
 }: FilingListProps): React.JSX.Element {
   return (
     <CardWrapper
@@ -106,8 +99,8 @@ export default function FilingList({
                         : 'bg-slate-950/40 border-slate-800 hover:border-slate-700/80'
                     }`}
                   >
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap justify-between items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-blue-500/10 text-blue-400 border border-blue-500/20">
                           {filing.form}
                         </span>
@@ -118,7 +111,7 @@ export default function FilingList({
                         href={filing.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-0.5 transition-colors"
+                        className="text-xs text-slate-400 hover:text-blue-400 flex items-center gap-0.5 transition-colors shrink-0"
                       >
                         원본 보기 <ArrowUpRight className="w-3.5 h-3.5" />
                       </a>
@@ -144,31 +137,6 @@ export default function FilingList({
               </span>
             </div>
           )}
-
-          <button
-            onClick={() => onAnalyze(filings.slice(0, 5), filing10K, filing10Q, filingsForm4)}
-            disabled={isAnalyzing}
-            className={`w-full py-3.5 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 mt-auto ${
-              isAnalyzing
-                ? 'bg-slate-900 border border-blue-500/30 text-blue-400 cursor-default'
-                : 'bg-blue-600 hover:bg-blue-500 text-slate-950 shadow-lg shadow-blue-500/10 cursor-pointer disabled:opacity-50'
-            }`}
-            type="button"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                종합 분석 진행 중...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-4 h-4" />
-                {filings.length > 0
-                  ? '최근 5개 8-K + 10-K/Q + Form 4 종합 분석'
-                  : '10-K/Q + Form 4 종합 분석 시작'}
-              </>
-            )}
-          </button>
         </div>
       )}
     </CardWrapper>

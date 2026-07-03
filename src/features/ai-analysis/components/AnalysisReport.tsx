@@ -43,6 +43,7 @@ interface AnalysisReportProps {
   analysis: DeepPartial<z.infer<typeof stockAnalysisSchema>> | undefined;
   isAnalyzing: boolean;
   error: Error | undefined;
+  onAnalyze?: () => void;
 }
 
 export default function AnalysisReport({
@@ -51,6 +52,7 @@ export default function AnalysisReport({
   analysis,
   isAnalyzing,
   error,
+  onAnalyze,
 }: AnalysisReportProps): React.JSX.Element {
   // Safe fallback and type guard to filter out undefined items during streaming
   const keyDrivers = (analysis?.context?.keyDrivers ?? []).filter((d): d is string => typeof d === 'string');
@@ -81,15 +83,37 @@ export default function AnalysisReport({
 
       {/* Empty State / Placeholder */}
       {!activeFiling && !analysis && (
-        <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
-          <div className="w-16 h-16 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-4 animate-pulse">
-            <Gauge className="w-8 h-8" />
+        ticker ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div className="w-16 h-16 rounded-full bg-slate-950 flex items-center justify-center border border-slate-800 text-slate-400 mb-4 animate-pulse">
+              <Gauge className="w-8 h-8" />
+            </div>
+            <h4 className="font-bold text-slate-200 text-lg mb-1">분석 데이터 준비 완료</h4>
+            <p className="text-slate-400 text-sm max-w-sm mb-6">
+              최근 공시 데이터와 재무 및 매크로 지표가 준비되었습니다. 아래 버튼을 클릭하여 AI 종합 분석 리포트를 생성하세요.
+            </p>
+            {onAnalyze && (
+              <button
+                onClick={onAnalyze}
+                className="px-6 py-3.5 bg-blue-600 hover:bg-blue-500 text-slate-950 text-xs font-bold rounded-xl shadow-lg shadow-blue-500/15 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                type="button"
+              >
+                <Sparkles className="w-4 h-4 text-slate-950" />
+                AI 종합 분석 시작
+              </button>
+            )}
           </div>
-          <h4 className="font-bold text-slate-200 text-lg mb-1">분석 데이터 준비 완료</h4>
-          <p className="text-slate-400 text-sm max-w-sm">
-            좌측 목록에서 분석할 SEC 8-K 공시 카드의 <strong className="font-bold">&quot;AI 분석하기&quot;</strong> 버튼을 클릭하시면 실시간 리포트 생성이 시작됩니다.
-          </p>
-        </div>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
+            <div className="w-16 h-16 rounded-full bg-slate-950/20 flex items-center justify-center border border-slate-800/40 text-slate-500 mb-4">
+              <Gauge className="w-8 h-8" />
+            </div>
+            <h4 className="font-bold text-slate-500 text-lg mb-1">분석 대기 중</h4>
+            <p className="text-slate-500 text-sm max-w-sm">
+              상단 검색창에서 기업 티커를 검색하면 공시 연계 분석 모델이 활성화됩니다.
+            </p>
+          </div>
+        )
       )}
 
       {/* Streaming Content Display */}
@@ -299,7 +323,7 @@ export default function AnalysisReport({
           <div className="text-[10px] text-slate-400 leading-relaxed flex gap-1.5 mt-auto pt-4 border-t border-slate-800/40">
             <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" />
             <span>
-              본 분석 보고서는 SEC 8-K 공시 원문과 최근 재무 시장 데이터를 기반으로 AI(Gemini 3.5 Flash)가 실시간 자동 작성한 리포트이며, 최종 투자 책임은 투자자 본인에게 있습니다.
+              본 분석 보고서는 SEC 8-K 공시 원문과 최근 재무 시장 데이터를 기반으로 AI(Gemini 2.5 Flash)가 실시간 자동 작성한 리포트이며, 최종 투자 책임은 투자자 본인에게 있습니다.
             </span>
           </div>
 

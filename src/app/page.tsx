@@ -18,7 +18,7 @@ import AnalysisReport from '@/features/ai-analysis/components/AnalysisReport';
 import { Filing } from '@/types';
 import { Fundamentals } from '@/features/fundamentals/types';
 import { MacroData } from '@/features/macro-indicators/types';
-import { ChartRangeData } from '@/lib/price';
+import { ChartRangeData } from '@/features/price-chart/types';
 
 export default function Home(): React.JSX.Element {
   const [tickerInput, setTickerInput] = useState('');
@@ -245,7 +245,6 @@ export default function Home(): React.JSX.Element {
                 activeFiling={activeFiling}
                 isAnalyzing={isAnalyzing}
                 activeTicker={activeTicker}
-                onAnalyze={handleAnalyze}
               />
             </div>
           </div>
@@ -271,6 +270,7 @@ export default function Home(): React.JSX.Element {
               analysis={analysis}
               isAnalyzing={isAnalyzing}
               error={analysisError}
+              onAnalyze={() => handleAnalyze(filings, filing10K, filing10Q, filingsForm4)}
             />
           </div>
         </div>

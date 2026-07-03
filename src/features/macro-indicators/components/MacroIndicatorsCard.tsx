@@ -115,7 +115,7 @@ export default function MacroIndicatorsCard({
           )}
 
           {/* Metrics Grid */}
-          <div className="grid grid-cols-2 gap-3.5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* 1. Federal Funds Rate */}
             <MetricItem
               label="미국 기준금리"

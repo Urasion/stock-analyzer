@@ -1,13 +1,14 @@
 'use client';
 
 import * as React from 'react';
-import { AreaChart, Area, XAxis, YAxis, Tooltip as ChartTooltip, ResponsiveContainer } from 'recharts';
+import { useEffect, useRef } from 'react';
+import { createChart, ColorType, CandlestickSeries, Time } from 'lightweight-charts';
 import { LineChart, Loader2, TrendingUp, TrendingDown } from 'lucide-react';
 import CardWrapper from '@/components/CardWrapper';
 import InfoTooltip from '@/components/InfoTooltip';
 import { Toggle } from '@/components/ui/toggle';
 import { ToggleGroup } from '@/components/ui/toggle-group';
-import { ChartRangeData } from '@/lib/price';
+import { ChartRangeData } from '../types';
 
 interface PriceChartCardProps {
   ticker: string;
@@ -24,51 +25,128 @@ export default function PriceChartCard({
   range,
   onRangeChange,
 }: PriceChartCardProps): React.JSX.Element {
-  // Format XAxis ticks based on range
-  const formatXAxis = (tickStr: string | number): string => {
-    try {
-      if (!tickStr) return '';
-      const date = new Date(tickStr);
-      if (range === '1D') {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${hours}:${minutes}`;
-      }
-      if (range === '1W' || range === '1M') {
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${month}.${day}`;
-      }
-      // 1Y
-      const year = String(date.getFullYear()).substring(2);
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      return `${year}.${month}`;
-    } catch {
-      return String(tickStr || '');
-    }
-  };
+  const chartContainerRef = useRef<HTMLDivElement>(null);
 
-  // Format Tooltip label (date/time)
-  const formatTooltipLabel = (labelStr: React.ReactNode): React.ReactNode => {
-    try {
-      if (typeof labelStr !== 'string' && typeof labelStr !== 'number') {
-        return labelStr;
-      }
-      const date = new Date(labelStr);
-      if (range === '1D') {
-        const hours = String(date.getHours()).padStart(2, '0');
-        const minutes = String(date.getMinutes()).padStart(2, '0');
-        return `${date.toLocaleDateString('ko-KR')} ${hours}:${minutes}`;
-      }
-      return date.toLocaleDateString('ko-KR');
-    } catch {
-      return labelStr;
+  useEffect(() => {
+    if (!chartContainerRef.current || !chartData || !chartData.quotes || chartData.quotes.length === 0) {
+      return;
     }
-  };
+
+    const container = chartContainerRef.current;
+
+    // 데이터 가공: 범위에 따른 시간/날짜 키 및 OHLC 맵핑
+    const formattedData = chartData.quotes.map((q) => {
+      const dateObj = new Date(q.date);
+      const timeVal = (range === '1D' || range === '1W')
+        ? Math.floor(dateObj.getTime() / 1000) as Time
+        : `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}` as Time;
+
+      return {
+        time: timeVal,
+        open: q.open ?? q.close,
+        high: q.high ?? q.close,
+        low: q.low ?? q.close,
+        close: q.close,
+      };
+    });
+
+    // 중복 시간 데이터 제거 및 시간순 오름차순 정렬 (Lightweight Charts 제약 조건 대응)
+    const uniqueSortedData = formattedData
+      .filter((value, index, self) => 
+        self.findIndex((v) => v.time === value.time) === index
+      )
+      .sort((a, b) => {
+        if (typeof a.time === 'number' && typeof b.time === 'number') {
+          return (a.time as number) - (b.time as number);
+        }
+        return String(a.time).localeCompare(String(b.time));
+      });
+
+    if (uniqueSortedData.length === 0) return;
+
+    // 차트 생성
+    const chart = createChart(container, {
+      layout: {
+        background: { type: ColorType.Solid, color: 'transparent' },
+        textColor: '#94a3b8', // slate-400
+        fontSize: 10,
+        fontFamily: 'sans-serif',
+      },
+      grid: {
+        vertLines: { visible: false },
+        horzLines: { visible: false },
+      },
+      width: container.clientWidth,
+      height: container.clientHeight || 240,
+      timeScale: {
+        borderVisible: false,
+        timeVisible: range === '1D' || range === '1W',
+        secondsVisible: false,
+      },
+      rightPriceScale: {
+        borderVisible: false,
+        scaleMargins: {
+          top: 0.1,
+          bottom: 0.1,
+        },
+      },
+      crosshair: {
+        vertLine: {
+          color: '#3b82f6', // blue-500
+          width: 1,
+          style: 3, // Dashed
+          labelBackgroundColor: '#1e293b', // slate-800
+        },
+        horzLine: {
+          color: '#3b82f6',
+          width: 1,
+          style: 3,
+          labelBackgroundColor: '#1e293b',
+        },
+      },
+    });
+
+    // 캔들스틱(Candlestick) 시리즈 추가 (한국식 상승/하락 테마 색상 지정)
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
+      upColor: '#ef4444',      // 양봉: 빨강 (rose-500 / red-500)
+      downColor: '#3b82f6',    // 음봉: 파랑 (blue-500)
+      borderVisible: false,
+      wickUpColor: '#ef4444',  // 양봉 꼬리: 빨강
+      wickDownColor: '#3b82f6',// 음봉 꼬리: 파랑
+      priceFormat: {
+        type: 'price',
+        precision: 2,
+        minMove: 0.01,
+      },
+    });
+
+    candlestickSeries.setData(uniqueSortedData);
+    chart.timeScale().fitContent();
+
+    // 반응형 크기 변경 대응
+    const handleResize = () => {
+      if (container) {
+        chart.applyOptions({
+          width: container.clientWidth,
+          height: container.clientHeight,
+        });
+      }
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
+
+    return () => {
+      resizeObserver.disconnect();
+      chart.remove();
+    };
+  }, [chartData, range]);
 
   return (
     <CardWrapper
-      title={ticker ? `${ticker} 주가 차트 및 가격 변동` : "주가 차트 및 가격 변동"}
+      title={ticker ? `${ticker} 주가 차트 및 가격 변동` : '주가 차트 및 가격 변동'}
       icon={<LineChart className="w-5 h-5 text-blue-400" />}
       headerRight={
         ticker ? (
@@ -117,23 +195,23 @@ export default function PriceChartCard({
             <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4">
               <span className="text-[10px] text-slate-400 font-bold uppercase">기간 변동률</span>
               {chartData.changePercent !== null ? (
-                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? "text-blue-400" : "text-rose-400"}`}>
+                <div className={`flex items-center gap-1 text-sm font-bold ${chartData.changePercent >= 0 ? 'text-blue-400' : 'text-rose-400'}`}>
                   {chartData.changePercent >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
-                  <span>{chartData.changePercent >= 0 ? "+" : ""}{chartData.changePercent}%</span>
+                  <span>{chartData.changePercent >= 0 ? '+' : ''}{chartData.changePercent}%</span>
                 </div>
               ) : (
                 <span className="text-sm font-bold text-slate-400">N/A</span>
               )}
             </div>
 
-            <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4">
+            <div className="flex flex-col gap-0.5 border-t border-slate-800/60 pt-4 md:border-t-0 md:pt-0 md:border-l md:border-slate-800/60 md:pl-4">
               <span className="text-[10px] text-slate-400 font-bold uppercase">기간 최고 / 최저</span>
               <span className="text-sm font-bold text-slate-100">
                 ${chartData.high} / ${chartData.low}
               </span>
             </div>
 
-            <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4">
+            <div className="flex flex-col gap-0.5 border-l border-slate-800/60 pl-4 border-t border-slate-800/60 pt-4 md:border-t-0 md:pt-0">
               <div className="flex items-center gap-0.5">
                 <span className="text-[10px] text-slate-400 font-bold uppercase">기간 변동성</span>
                 <InfoTooltip content="선택한 기간 동안의 종가 변동성(평균 대비 표준편차 비율, Coefficient of Variation)입니다. 값이 높을수록 단기 주가 널뛰기가 심했음을 의미합니다." />
@@ -145,55 +223,9 @@ export default function PriceChartCard({
           </div>
 
           {/* Area Chart Container */}
-          <div className="h-64 w-full bg-slate-950/10 rounded-xl border border-slate-900/60 p-2 overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData.quotes} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="priceRangeGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis 
-                  dataKey="date" 
-                  tickFormatter={formatXAxis}
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis 
-                  domain={["auto", "auto"]} 
-                  tick={{ fontSize: 9, fill: "#64748b" }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <ChartTooltip
-                  contentStyle={{ 
-                    backgroundColor: "rgba(15, 23, 42, 0.95)", 
-                    borderColor: "#1e293b", 
-                    borderRadius: "8px",
-                    fontSize: "11px",
-                    color: "#e2e8f0",
-                    padding: "8px",
-                  }}
-                  labelFormatter={formatTooltipLabel}
-                  formatter={(value: unknown) => {
-                    if (typeof value === 'number' || typeof value === 'string') {
-                      return [`$${Number(value).toFixed(2)}`, '종가'];
-                    }
-                    return ['', '종가'];
-                  }}
-                />
-                <Area 
-                  type="monotone" 
-                  dataKey="close" 
-                  stroke="#3b82f6" 
-                  strokeWidth={2}
-                  fillOpacity={1} 
-                  fill="url(#priceRangeGradient)" 
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full bg-slate-950/10 rounded-xl border border-slate-900/60 p-2 overflow-hidden relative">
+            {/* Tailwind [&_a]:hidden 선택자를 활용해 캔버스 내부 TradingView attribution 로고 링크 제거 */}
+            <div ref={chartContainerRef} className="w-full h-full [&_a]:hidden" />
           </div>
         </div>
       )}

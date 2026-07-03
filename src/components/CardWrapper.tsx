@@ -24,7 +24,7 @@ export default function CardWrapper({
       className
     )}>
       {/* Card Header */}
-      <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800/60 shrink-0">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 pb-3 border-b border-slate-800/60 shrink-0">
         <div className="flex items-center gap-2">
           {icon}
           <h3 className="font-bold text-lg text-slate-100">{title}</h3>

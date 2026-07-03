@@ -1,25 +1,8 @@
 import YahooFinance from 'yahoo-finance2';
+import { PriceQuote, PriceMetrics, YahooFinanceQuote } from '@/types';
+import { ChartRangeData } from '@/features/price-chart/types';
 
 const yahooFinance = new YahooFinance();
-
-export interface PriceQuote {
-  date: string;
-  close: number;
-}
-
-export interface YahooFinanceQuote {
-  date: Date | string | number;
-  close: number | null | undefined;
-}
-
-export interface PriceMetrics {
-  currentPrice: number | null;
-  changePercent: number | null;
-  high180d: number | null;
-  low180d: number | null;
-  volatility180d: number | null;
-  quotes: PriceQuote[];
-}
 
 /**
  * 최근 180일(6개월/2분기)간의 주가 데이터를 조회하고, 현재 가격, 수익률, 최고/최저가 및 변동성 지표를 계산하여 반환합니다.
@@ -89,15 +72,7 @@ export async function get180DayPriceMetrics(ticker: string): Promise<PriceMetric
   }
 }
 
-export interface ChartRangeData {
-  range: string;
-  currentPrice: number | null;
-  changePercent: number | null;
-  high: number | null;
-  low: number | null;
-  volatility: number | null;
-  quotes: PriceQuote[];
-}
+
 
 export async function getPriceChartData(ticker: string, range: string): Promise<ChartRangeData | null> {
   try {
@@ -161,6 +136,9 @@ export async function getPriceChartData(ticker: string, range: string): Promise<
       return {
         date: dateStr,
         close: Number((q.close ?? 0).toFixed(2)),
+        open: q.open !== undefined && q.open !== null ? Number(q.open.toFixed(2)) : undefined,
+        high: q.high !== undefined && q.high !== null ? Number(q.high.toFixed(2)) : undefined,
+        low: q.low !== undefined && q.low !== null ? Number(q.low.toFixed(2)) : undefined,
       };
     });
 

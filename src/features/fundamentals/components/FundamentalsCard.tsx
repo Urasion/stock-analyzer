@@ -137,9 +137,9 @@ export default function FundamentalsCard({
                 label="매출 성장률 (전년 동기 대비)"
                 value={
                   <span className={`flex items-center gap-1 ${
-                    fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? "text-blue-400" : "text-rose-400"
+                    fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? "text-rose-400" : "text-blue-400"
                   }`}>
-                    {fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-rose-400" />}
+                    {fundamentals.revenueGrowth && fundamentals.revenueGrowth > 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4 text-blue-400" />}
                     {formatPercent(fundamentals.revenueGrowth)}
                   </span>
                 }
@@ -178,10 +178,10 @@ export default function FundamentalsCard({
                         <span className="font-bold text-slate-200">{formatQuarterDate(item.date)}</span>
                         <div className="flex flex-wrap items-center gap-3">
                           <span className="text-slate-400">예상: <strong className="text-slate-200">{item.estimate !== null ? `$${item.estimate.toFixed(2)}` : "N/A"}</strong></span>
-                          <span className="text-slate-400">실제: <strong className={isBeat ? "text-blue-400" : "text-rose-400"}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : "N/A"}</strong></span>
+                          <span className="text-slate-400">실제: <strong className={isBeat ? "text-rose-400" : "text-blue-400"}>{item.actual !== null ? `$${item.actual.toFixed(2)}` : "N/A"}</strong></span>
                           {item.actual !== null && item.estimate !== null && (
                             <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold shrink-0 ${
-                              isBeat ? "bg-blue-500/10 text-blue-400" : "bg-rose-500/10 text-rose-400"
+                              isBeat ? "bg-rose-500/10 text-rose-400" : "bg-blue-500/10 text-blue-400"
                             }`}>
                               {isBeat ? "Beat" : "Miss"}
                             </span>

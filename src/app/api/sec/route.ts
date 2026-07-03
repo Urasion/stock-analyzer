@@ -177,7 +177,7 @@ export async function GET(request: NextRequest) {
       
       const url = `https://www.sec.gov/Archives/edgar/data/${cikNum}/${accessionNumberWithoutDashes}/${primaryDocument}`;
 
-      if (formType === '8-K' && filings.length < 5) {
+      if (formType === '8-K' && filings.length < 10) {
         filings.push({
           accessionNumber,
           filingDate: recent.filingDate[i],
@@ -221,7 +221,7 @@ export async function GET(request: NextRequest) {
         });
       }
 
-      if (filings.length === 5 && filing10K !== null && filing10Q !== null && filingsForm4.length === 5) {
+      if (filings.length === 10 && filing10K !== null && filing10Q !== null && filingsForm4.length === 5) {
         break;
       }
     }

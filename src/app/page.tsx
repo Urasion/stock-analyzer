@@ -234,7 +234,7 @@ export default function Home(): React.JSX.Element {
           {/* Top Row: Indicators */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
             {/* 1. 글로벌 거시경제 지표 */}
-            <div className="lg:col-span-4 h-full">
+            <div className="lg:col-span-3 h-full">
               <MacroIndicatorsCard
                 macroData={macroData}
                 loading={loadingMacro}
@@ -242,13 +242,17 @@ export default function Home(): React.JSX.Element {
               />
             </div>
 
-            {/* 2. 기초 재무 데이터 및 재무 안전성 */}
-            <div className="lg:col-span-4 flex flex-col gap-8">
+            {/* 2. 기초 재무 데이터 */}
+            <div className="lg:col-span-3 h-full">
               <FundamentalsCard
                 ticker={activeTicker}
                 fundamentals={fundamentals}
                 loading={loadingFundamentals}
               />
+            </div>
+
+            {/* 3. 재무 안전성 및 컨센서스 */}
+            <div className="lg:col-span-3 h-full">
               <LiquidityAndConsensusCard
                 ticker={activeTicker}
                 fundamentals={fundamentals}
@@ -256,8 +260,8 @@ export default function Home(): React.JSX.Element {
               />
             </div>
 
-            {/* 3. 최근 SEC 8-K 수시 공시 */}
-            <div className="lg:col-span-4 h-full">
+            {/* 4. 최근 SEC 8-K 수시 공시 */}
+            <div className="lg:col-span-3 h-full">
               <FilingList
                 filings={filings}
                 filing10K={filing10K}

@@ -87,8 +87,8 @@ export default function FilingList({
 
           {/* 8-K 공시 목록 */}
           {filings.length > 0 ? (
-            <div className="flex flex-col gap-3">
-              {filings.slice(0, 5).map((filing, index) => {
+            <div className="flex flex-col gap-3 max-h-[480px] overflow-y-auto pr-1">
+              {filings.slice(0, 10).map((filing, index) => {
                 const isAnalyzingCombined = activeFiling?.accessionNumber === 'combined-analysis' && isAnalyzing;
                 return (
                   <div
@@ -123,9 +123,9 @@ export default function FilingList({
                 );
               })}
 
-              {filings.length > 5 && (
+              {filings.length > 10 && (
                 <p className="text-[11px] text-slate-500 text-center mt-1">
-                  * 최근 5개의 공시만 선별하여 종합 분석을 진행합니다. (총 {filings.length}개 공시 중)
+                  * 최근 10개의 공시만 선별하여 종합 분석을 진행합니다. (총 {filings.length}개 공시 중)
                 </p>
               )}
             </div>

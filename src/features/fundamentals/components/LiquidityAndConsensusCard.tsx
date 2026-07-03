@@ -73,9 +73,9 @@ export default function LiquidityAndConsensusCard({
                 value={
                   <span className={`font-bold ${
                     fundamentals.cashRunwayMonths && fundamentals.cashRunwayMonths < 12 
-                      ? "text-rose-400" 
+                      ? "text-blue-400" 
                       : fundamentals.cashRunwayMonths === 999 
-                        ? "text-emerald-400" 
+                        ? "text-rose-400" 
                         : "text-slate-200"
                   }`}>
                     {formatRunwayMonths(fundamentals.cashRunwayMonths)}

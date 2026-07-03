@@ -9,6 +9,7 @@ interface CardWrapperProps {
   headerRight?: ReactNode;
   className?: string;
   children: ReactNode;
+  fullHeight?: boolean;
 }
 
 export default function CardWrapper({ 
@@ -16,11 +17,13 @@ export default function CardWrapper({
   icon, 
   headerRight, 
   className, 
-  children 
+  children,
+  fullHeight = true
 }: CardWrapperProps) {
   return (
     <div className={cn(
-      "bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl h-full flex flex-col transition-all duration-300", 
+      "bg-slate-900/40 backdrop-blur-md border border-slate-900 rounded-2xl p-6 shadow-xl flex flex-col transition-all duration-300", 
+      fullHeight ? "h-full" : "h-auto flex-1",
       className
     )}>
       {/* Card Header */}

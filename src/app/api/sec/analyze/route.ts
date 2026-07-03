@@ -11,6 +11,7 @@ import { stockAnalysisSchema } from '@/app/schema';
 import { buildAnalysisPrompt, FundamentalsInput } from './prompts';
 import { getMacroData } from '@/lib/macro';
 import { get180DayPriceMetrics } from '@/lib/price';
+import { getFundamentalsData } from '@/lib/fundamentals';
 
 export async function POST(request: NextRequest) {
   // 환경변수 체크
@@ -139,11 +140,9 @@ export async function POST(request: NextRequest) {
     let macroData = null;
 
     try {
-      const [summary, priceMetrics, macro] = await Promise.all([
-        yahooFinance.quoteSummary(upperTicker, {
-          modules: ['summaryDetail', 'financialData', 'earnings', 'defaultKeyStatistics', 'calendarEvents'],
-        }).catch(err => {
-          console.warn('Could not fetch quote summary:', err);
+      const [fundamentals, priceMetrics, macro] = await Promise.all([
+        getFundamentalsData(upperTicker).catch(err => {
+          console.warn('Could not fetch fundamentals data:', err);
           return null;
         }),
         get180DayPriceMetrics(upperTicker).catch(err => {
@@ -156,46 +155,9 @@ export async function POST(request: NextRequest) {
         })
       ]);
 
+      fundamentalsData = fundamentals;
       macroData = macro;
       priceMetricsData = priceMetrics;
-
-      if (summary) {
-        const trailingPE = summary.summaryDetail?.trailingPE ?? null;
-        const forwardPE = summary.summaryDetail?.forwardPE ?? null;
-        const priceToBook = summary.defaultKeyStatistics?.priceToBook ?? null;
-        const revenueGrowth = summary.financialData?.revenueGrowth ?? null;
-        
-        const rawEarnings = summary.earnings?.earningsChart?.quarterly ?? [];
-        const epsHistory = rawEarnings.map((item: { date: string; actual?: number; estimate?: number }) => ({
-          date: item.date,
-          actual: item.actual ?? null,
-          estimate: item.estimate ?? null,
-        }));
-
-        // 분기별 실제 매출 및 순이익 차트
-        const rawQuarterlyRevenue = summary.earnings?.financialsChart?.quarterly ?? [];
-        const quarterlyRevenue = rawQuarterlyRevenue.map((item: { date: string; revenue?: number; earnings?: number }) => ({
-          date: item.date,
-          revenue: item.revenue ?? null,
-          earnings: item.earnings ?? null,
-        }));
-
-        // 다음 분기 가이던스 전망치 평균
-        const nextEarningsEstimate = {
-          revenueAverage: summary.calendarEvents?.earnings?.revenueAverage ?? null,
-          epsAverage: (summary.calendarEvents?.earnings?.epsAverage as number | null) ?? null,
-        };
-
-        fundamentalsData = {
-          trailingPE,
-          forwardPE,
-          priceToBook,
-          revenueGrowth,
-          epsHistory,
-          quarterlyRevenue,
-          nextEarningsEstimate,
-        };
-      }
     } catch (err) {
       console.warn('Error fetching parallel data, proceeding with analysis:', err);
     }

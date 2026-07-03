@@ -12,6 +12,12 @@ export interface QuarterlyRevenueItem {
   earnings: number | null;
 }
 
+export interface PeerMetricItem {
+  ticker: string;
+  forwardPE: number | string;
+  priceToBook: number | string;
+}
+
 export interface FundamentalsInput {
   trailingPE: number | null;
   forwardPE: number | null;
@@ -23,6 +29,20 @@ export interface FundamentalsInput {
     revenueAverage: number | null;
     epsAverage: number | null;
   } | null;
+  cashAndEquivalents?: number | null;
+  cashBurnRate?: number | null;
+  cashRunwayMonths?: number | null;
+  insidersPercentHeld?: string | null;
+  institutionsPercentHeld?: string | null;
+  targetPriceDeviationPercent?: number | null;
+  consensusDistribution?: {
+    strongBuy: number;
+    buy: number;
+    hold: number;
+    sell: number;
+    strongSell: number;
+  } | null;
+  peerMetrics?: PeerMetricItem[] | null;
 }
 
 export interface PriceMetricsInput {
@@ -85,6 +105,40 @@ export function buildAnalysisPrompt(
   const nextEpsStr = nextEps !== null && nextEps !== undefined ? `${nextEps}` : 'N/A';
   const nextEstimateStr = `매출 평균 예상: ${nextRevStr} / 주당순이익(EPS) 평균 예상: ${nextEpsStr}`;
 
+  // 유동성 및 현금 Runway 포맷팅
+  const cashAndEquivalentsStr = fundamentals?.cashAndEquivalents !== null && fundamentals?.cashAndEquivalents !== undefined
+    ? `$${(fundamentals.cashAndEquivalents / 1000000).toFixed(2)}M`
+    : 'N/A';
+  const cashBurnRateStr = fundamentals?.cashBurnRate !== null && fundamentals?.cashBurnRate !== undefined
+    ? `$${(fundamentals.cashBurnRate / 1000000).toFixed(2)}M/월`
+    : 'N/A';
+  const cashRunwayStr = fundamentals?.cashRunwayMonths !== null && fundamentals?.cashRunwayMonths !== undefined
+    ? `${fundamentals.cashRunwayMonths.toFixed(1)}개월`
+    : 'N/A';
+
+  // 수급 및 지분율 포맷팅
+  const insidersStr = fundamentals?.insidersPercentHeld ?? 'N/A';
+  const institutionsStr = fundamentals?.institutionsPercentHeld ?? 'N/A';
+
+  // 시장 컨센서스 기대 편차 및 애널리스트 의견 분포 포맷팅
+  const targetDeviationStr = fundamentals?.targetPriceDeviationPercent !== null && fundamentals?.targetPriceDeviationPercent !== undefined
+    ? `${fundamentals.targetPriceDeviationPercent.toFixed(1)}%`
+    : 'N/A';
+  
+  let consensusDistStr = '분포 데이터 없음';
+  if (fundamentals?.consensusDistribution) {
+    const dist = fundamentals.consensusDistribution;
+    consensusDistStr = `적극매수(Strong Buy): ${dist.strongBuy} / 매수(Buy): ${dist.buy} / 관망(Hold): ${dist.hold} / 매도(Sell): ${dist.sell} / 적극매도(Strong Sell): ${dist.strongSell}`;
+  }
+
+  // 동종업계 경쟁사 지표 포맷팅
+  let peerMetricsStr = '경쟁사 비교 데이터 없음';
+  if (fundamentals?.peerMetrics && fundamentals.peerMetrics.length > 0) {
+    peerMetricsStr = fundamentals.peerMetrics.map(peer => 
+      `- ${peer.ticker}: 선행 PE ${peer.forwardPE}배 / PBR ${peer.priceToBook}배`
+    ).join('\n');
+  }
+
   // 거시경제 맥락 데이터 (FRED API) 구성
   let macroSection = '거시경제 데이터를 불러오지 못했습니다.';
   if (macroData) {
@@ -129,6 +183,14 @@ ${historyLines}
 - 차기 분기 시장 컨센서스 (가이던스 분석 기준):
 ${nextEstimateStr}
 
+[1-2. 추가 재무 안전성, 수급 및 경쟁사 지표 (Liquidity, Ownership & Peers)]
+- 유동성 현황: 가용 현금 및 현금성 자산 ${cashAndEquivalentsStr} / 월평균 현금 소모액 ${cashBurnRateStr} / 예상 현금 런웨이(Runway) ${cashRunwayStr}
+- 주주 구성 및 수급: 내부자 지분율 ${insidersStr} / 기관 투자자 지분율 ${institutionsStr}
+- 애널리스트 목표가 기대 편차(최고-최저가 격차율): ${targetDeviationStr}
+- 애널리스트 투자의견 분포: ${consensusDistStr}
+- 동종업계 경쟁사(Peers) 동적 비교 지표:
+${peerMetricsStr}
+
 [2. 미국 거시경제 상황 (Macroeconomic Context - FRED API)]
 ${macroSection}
 
@@ -149,7 +211,12 @@ ${combinedText || '공시 데이터를 불러오지 못했습니다.'}
 5. 제공된 [3. 최근 180일 주가 추이 및 시장 센티먼트] 정보를 분석에 연계하십시오:
    - 최근 180일 주가 변동성(평균 대비 표준편차 비율)이 극도로 높거나 주가가 폭락하는 상황에서 악재 공시가 연이어 발생했다면, 시장의 공포 심리 및 신용/추가 담보 리스크를 강조해 주십시오.
    - 반대로 주가가 최근 급등하여 변동성이 높은 상태에서 호재성 공시가 났다면, 해당 공시가 실체 없는 테마성 거품(Pump & Dump)인지 혹은 실제 펀더멘털 개선을 유도할 견조한 모멘텀인지 분석하십시오.
-6. 분석 결과 도출되는 매출액(revenue)이나 EPS, 가이던스 등의 실질 값은 공시 원문과 위 제공된 '재무 맥락' 수치들을 토대로 정확하게 작성하세요. (정보 부재 시 '집계 중' 혹은 'N/A'가 아닌, 제공된 시장 컨센서스 및 과거 매출 데이터를 토대로 유추하여 합당한 가치평가를 제시하십시오.)
+ 6. 분석 결과 도출되는 매출액(revenue)이나 EPS, 가이던스 등의 실질 값은 공시 원문과 위 제공된 '재무 맥락' 수치들을 토대로 정확하게 작성하세요. (정보 부재 시 '집계 중' 혹은 'N/A'가 아닌, 제공된 시장 컨센서스 및 과거 매출 데이터를 토대로 유추하여 합당한 가치평가를 제시하십시오.)
+ 7. 제공된 [1-2. 추가 재무 안전성, 수급 및 경쟁사 지표]를 분석 및 최종 신뢰도 점수(confidenceScore) 산정에 적극 반영하십시오:
+    - 현금 런웨이가 12개월 미만으로 짧다면 재무적 리스크 및 추가 지분 희석 우려를 반영하고, 24개월 이상으로 풍부하다면 성장 인프라 투자 지속 가능성에 가산점을 부여하십시오.
+    - 내부자 지분율이 극도로 낮거나 최근 매도 일색이라면 경영진 자신감(managementTone) 판정에 반영하고, 기관 투자 비율 변화를 통해 시장 수급의 견조성을 확인하십시오.
+    - 동종업계 경쟁사들의 P/E, P/B 멀티플 대비 현재 기업의 밸류에이션(고평가/저평가 여부)을 객관적으로 비교 분석하십시오.
+    - 애널리스트들의 의견 대립 편차(목표가 기대 편차)가 크다면, 시장의 불확실성이 크다는 점을 참작하여 최종 분석 신뢰도(confidenceScore)의 보정 근거로 사용하십시오.
 
 [중요 규칙]
 - details, keyDrivers, riskFactors, shareholderReturn, oneLineSummary 등 스키마 내의 모든 텍스트/문자열(String) 필드는 반드시 한국어로 격식 있고 프로페셔널하게 작성해 주세요.

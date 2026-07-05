@@ -88,12 +88,6 @@ export default function AnalysisReport({
   const [localHasPosition, setLocalHasPosition] = React.useState(false);
   const [localAvgPrice, setLocalAvgPrice] = React.useState<string>('');
 
-  // Reset inputs when ticker changes
-  React.useEffect(() => {
-    setLocalHasPosition(false);
-    setLocalAvgPrice('');
-  }, [ticker]);
-
   // Safe fallback and type guard to filter out undefined items during streaming
   const keyDrivers = (analysis?.context?.keyDrivers ?? []).filter((d): d is string => typeof d === 'string');
   const riskFactors = (analysis?.context?.riskFactors ?? []).filter((r): r is string => typeof r === 'string');

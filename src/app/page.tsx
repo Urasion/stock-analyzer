@@ -46,11 +46,7 @@ function HomeContent(): React.JSX.Element {
   const queryAvgPrice = searchParams.get('avgPrice') ? parseFloat(searchParams.get('avgPrice')!) : null;
 
   const [tickerInput, setTickerInput] = useState(activeTicker);
-
-  // Sync input value with activeTicker if URL changes directly
-  useEffect(() => {
-    setTickerInput(activeTicker);
-  }, [activeTicker]);
+  const [prevTicker, setPrevTicker] = useState(activeTicker);
 
   // SEC Filings state
   const [filings, setFilings] = useState<Filing[]>([]);
@@ -74,8 +70,40 @@ function HomeContent(): React.JSX.Element {
   const [loadingMacro, setLoadingMacro] = useState(false);
   const [macroError, setMacroError] = useState('');
 
-  // Active filing state
-  const [activeFiling, setActiveFiling] = useState<Filing | null>(null);
+  // Adjust state during rendering when ticker changes
+  if (activeTicker !== prevTicker) {
+    setPrevTicker(activeTicker);
+    setFilings([]);
+    setFiling10K(null);
+    setFiling10Q(null);
+    setFilingsForm4([]);
+    setSecError('');
+    setFundamentals(null);
+    setChartData(null);
+    setTickerInput(activeTicker);
+  }
+
+  // Derived state: Active filing configuration
+  const activeFiling: Filing | null = (() => {
+    if (!activeTicker) return null;
+    if (analyzeTrigger) {
+      return {
+        accessionNumber: 'combined-analysis',
+        form: 'SEC 종합',
+        filingDate: new Date().toLocaleDateString('ko-KR', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+        }),
+        reportDate: '최근 다각 분석',
+        description: filings.length > 0
+          ? `8-K 수시공시 ${filings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`
+          : `10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`,
+        url: '',
+      };
+    }
+    return null;
+  })();
 
   // Fetch Macro Data on mount
   useEffect(() => {
@@ -166,27 +194,7 @@ function HomeContent(): React.JSX.Element {
 
   // Effect to load ticker data when activeTicker changes
   useEffect(() => {
-    if (!activeTicker) {
-      setActiveFiling(null);
-      setFilings([]);
-      setFiling10K(null);
-      setFiling10Q(null);
-      setFilingsForm4([]);
-      setSecError('');
-      setFundamentals(null);
-      setChartData(null);
-      return;
-    }
-
-    // Reset previous search values
-    setActiveFiling(null);
-    setFilings([]);
-    setFiling10K(null);
-    setFiling10Q(null);
-    setFilingsForm4([]);
-    setSecError('');
-    setFundamentals(null);
-    setChartData(null);
+    if (!activeTicker) return;
 
     const loadData = async () => {
       // Fetch SEC Filings
@@ -233,22 +241,6 @@ function HomeContent(): React.JSX.Element {
   useEffect(() => {
     if (!activeTicker || !analyzeTrigger || loadingSec) return;
 
-    const virtualFiling: Filing = {
-      accessionNumber: 'combined-analysis',
-      form: 'SEC 종합',
-      filingDate: new Date().toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-      }),
-      reportDate: '최근 다각 분석',
-      description: filings.length > 0
-        ? `8-K 수시공시 ${filings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`
-        : `10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`,
-      url: '',
-    };
-
-    setActiveFiling(virtualFiling);
     submit({
       urls: filings.map((f) => f.url),
       url10K: filing10K ? filing10K.url : null,

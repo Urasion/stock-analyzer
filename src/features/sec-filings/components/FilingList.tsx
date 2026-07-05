@@ -38,11 +38,12 @@ export default function FilingList({
   activeTicker,
 }: FilingListProps): React.JSX.Element {
   const [activeTab, setActiveTab] = useState<TabType>('8-K');
+  const [prevTicker, setPrevTicker] = useState(activeTicker);
 
-  // Reset tab to 8-K when ticker changes
-  useEffect(() => {
+  if (activeTicker !== prevTicker) {
+    setPrevTicker(activeTicker);
     setActiveTab('8-K');
-  }, [activeTicker]);
+  }
 
   return (
     <CardWrapper

@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { stockAnalysisSchema } from '@/app/schema';
 import CardWrapper from '@/components/CardWrapper';
-import { Filing } from '@/types';
+import { Filing, DeepPartial } from '@/types';
 
 const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
   if (!revStr) return '집계 중...';
@@ -33,9 +33,7 @@ const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
   return trimmed;
 };
 
-type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+
 
 const sentimentMap: Record<string, string> = {
   'STRONG BUY': '적극 매수',

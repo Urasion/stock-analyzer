@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { experimental_useObject as useObject } from '@ai-sdk/react';
 import { z } from 'zod';
 import { stockAnalysisSchema } from '@/app/schema';
@@ -17,18 +18,39 @@ import PriceChartCard from '@/features/price-chart/components/PriceChartCard';
 import AnalysisReport from '@/features/ai-analysis/components/AnalysisReport';
 
 // Types
-import { Filing } from '@/types';
+import { Filing, DeepPartial } from '@/types';
 import { Fundamentals } from '@/features/fundamentals/types';
 import { MacroData } from '@/features/macro-indicators/types';
 import { ChartRangeData } from '@/features/price-chart/types';
 
-type DeepPartial<T> = T extends object ? {
-  [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
-
 export default function Home(): React.JSX.Element {
-  const [tickerInput, setTickerInput] = useState('');
-  const [activeTicker, setActiveTicker] = useState('');
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-950 text-slate-400 flex items-center justify-center font-sans">
+        데이터 로딩 중...
+      </div>
+    }>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+function HomeContent(): React.JSX.Element {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // URL Query Params as State (Single Source of Truth)
+  const activeTicker = searchParams.get('ticker')?.toUpperCase() || '';
+  const analyzeTrigger = searchParams.get('analyze') === 'true';
+  const queryHasPosition = searchParams.get('hasPosition') === 'true';
+  const queryAvgPrice = searchParams.get('avgPrice') ? parseFloat(searchParams.get('avgPrice')!) : null;
+
+  const [tickerInput, setTickerInput] = useState(activeTicker);
+
+  // Sync input value with activeTicker if URL changes directly
+  useEffect(() => {
+    setTickerInput(activeTicker);
+  }, [activeTicker]);
 
   // SEC Filings state
   const [filings, setFilings] = useState<Filing[]>([]);
@@ -54,10 +76,6 @@ export default function Home(): React.JSX.Element {
 
   // Active filing state
   const [activeFiling, setActiveFiling] = useState<Filing | null>(null);
-
-  // Position state for AI Analysis
-  const [hasPosition, setHasPosition] = useState(false);
-  const [avgPrice, setAvgPrice] = useState<number | null>(null);
 
   // Fetch Macro Data on mount
   useEffect(() => {
@@ -93,16 +111,6 @@ export default function Home(): React.JSX.Element {
     schema: stockAnalysisSchema,
   });
 
-  // Local state to manage report data and allow manual reset
-  const [reportData, setReportData] = useState<DeepPartial<z.infer<typeof stockAnalysisSchema>> | undefined>(undefined);
-
-  // Sync streaming analysis to local state
-  useEffect(() => {
-    if (analysis) {
-      setReportData(analysis);
-    }
-  }, [analysis]);
-
   // Fetch Price Chart Data
   const fetchChartData = async (ticker: string, range: string) => {
     setLoadingChart(true);
@@ -130,74 +138,101 @@ export default function Home(): React.JSX.Element {
     }
   };
 
-  // Search handler
-  const handleSearch = async (e: React.FormEvent) => {
+  // Search handler (Updates URL)
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const queryTicker = tickerInput.trim().toUpperCase();
     if (!queryTicker) return;
 
-    setActiveTicker(queryTicker);
+    router.push(`/?ticker=${queryTicker}`);
+  };
+
+  // Trigger AI Analysis (Updates URL to trigger the analysis effect)
+  const handleAnalyze = (
+    hp: boolean,
+    ap: number | null,
+  ) => {
+    if (!activeTicker) return;
+
+    const query = new URLSearchParams();
+    query.set('ticker', activeTicker);
+    query.set('analyze', 'true');
+    query.set('hasPosition', String(hp));
+    if (ap !== null && ap !== undefined) {
+      query.set('avgPrice', String(ap));
+    }
+    router.push(`/?${query.toString()}`);
+  };
+
+  // Effect to load ticker data when activeTicker changes
+  useEffect(() => {
+    if (!activeTicker) {
+      setActiveFiling(null);
+      setFilings([]);
+      setFiling10K(null);
+      setFiling10Q(null);
+      setFilingsForm4([]);
+      setSecError('');
+      setFundamentals(null);
+      setChartData(null);
+      return;
+    }
+
+    // Reset previous search values
     setActiveFiling(null);
-    setReportData(undefined);
     setFilings([]);
-    setHasPosition(false);
-    setAvgPrice(null);
     setFiling10K(null);
     setFiling10Q(null);
     setFilingsForm4([]);
     setSecError('');
     setFundamentals(null);
-    setChartData(null); // Clear previous chart data
+    setChartData(null);
 
-    // Fetch SEC Filings
-    setLoadingSec(true);
-    try {
-      const res = await fetch(`/api/sec?ticker=${queryTicker}`);
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || 'Failed to fetch SEC filings');
-      }
-      const data = await res.json();
-      setFilings(data.filings || []);
-      setFiling10K(data.filing10K || null);
-      setFiling10Q(data.filing10Q || null);
-      setFilingsForm4(data.filingsForm4 || []);
-    } catch (err) {
-      setSecError(err instanceof Error ? err.message : '공시 조회에 실패했습니다.');
-    } finally {
-      setLoadingSec(false);
-    }
-
-    // Fetch Fundamentals
-    setLoadingFundamentals(true);
-    try {
-      const res = await fetch(`/api/market/fundamentals?ticker=${queryTicker}`);
-      if (res.ok) {
+    const loadData = async () => {
+      // Fetch SEC Filings
+      setLoadingSec(true);
+      try {
+        const res = await fetch(`/api/sec?ticker=${activeTicker}`);
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.error || 'Failed to fetch SEC filings');
+        }
         const data = await res.json();
-        setFundamentals(data.fundamentals || null);
+        setFilings(data.filings || []);
+        setFiling10K(data.filing10K || null);
+        setFiling10Q(data.filing10Q || null);
+        setFilingsForm4(data.filingsForm4 || []);
+      } catch (err) {
+        setSecError(err instanceof Error ? err.message : '공시 조회에 실패했습니다.');
+      } finally {
+        setLoadingSec(false);
       }
-    } catch (err) {
-      console.error('Failed to fetch fundamentals', err);
-    } finally {
-      setLoadingFundamentals(false);
-    }
 
-    // Fetch Chart Data
-    fetchChartData(queryTicker, chartRange);
-  };
+      // Fetch Fundamentals
+      setLoadingFundamentals(true);
+      try {
+        const res = await fetch(`/api/market/fundamentals?ticker=${activeTicker}`);
+        if (res.ok) {
+          const data = await res.json();
+          setFundamentals(data.fundamentals || null);
+        }
+      } catch (err) {
+        console.error('Failed to fetch fundamentals', err);
+      } finally {
+        setLoadingFundamentals(false);
+      }
 
-  // Trigger AI Analysis
-  const handleAnalyze = (
-    targetFilings: Filing[],
-    target10K: Filing | null,
-    target10Q: Filing | null,
-    targetForm4: Filing[],
-    hp?: boolean,
-    ap?: number | null,
-  ) => {
-    if (!activeTicker) return;
+      // Fetch Chart Data
+      fetchChartData(activeTicker, chartRange);
+    };
 
-    setReportData(undefined);
+    loadData();
+  }, [activeTicker]);
+
+  // Effect to start analysis once target filings are loaded and analyzeTrigger is active
+  useEffect(() => {
+    if (!activeTicker || !analyzeTrigger || loadingSec) return;
+
     const virtualFiling: Filing = {
       accessionNumber: 'combined-analysis',
       form: 'SEC 종합',
@@ -207,26 +242,23 @@ export default function Home(): React.JSX.Element {
         day: '2-digit',
       }),
       reportDate: '최근 다각 분석',
-      description: targetFilings.length > 0
-        ? `8-K 수시공시 ${targetFilings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`
-        : `10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${targetForm4.length}건을 연계 분석합니다.`,
+      description: filings.length > 0
+        ? `8-K 수시공시 ${filings.length}건, 10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`
+        : `10-K/10-Q 재무/리스크 리포트 및 Form 4 내부자 거래내역 ${filingsForm4.length}건을 연계 분석합니다.`,
       url: '',
     };
 
-    const finalHasPosition = hp !== undefined ? hp : hasPosition;
-    const finalAvgPrice = ap !== undefined ? ap : avgPrice;
-
     setActiveFiling(virtualFiling);
     submit({
-      urls: targetFilings.map((f) => f.url),
-      url10K: target10K ? target10K.url : null,
-      url10Q: target10Q ? target10Q.url : null,
-      urlsForm4: targetForm4.map((f) => f.url),
+      urls: filings.map((f) => f.url),
+      url10K: filing10K ? filing10K.url : null,
+      url10Q: filing10Q ? filing10Q.url : null,
+      urlsForm4: filingsForm4.map((f) => f.url),
       ticker: activeTicker,
-      hasPosition: finalHasPosition,
-      avgPrice: finalAvgPrice,
+      hasPosition: queryHasPosition,
+      avgPrice: queryAvgPrice,
     });
-  };
+  }, [activeTicker, analyzeTrigger, loadingSec]);
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-500/30 selection:text-blue-200">
@@ -305,15 +337,14 @@ export default function Home(): React.JSX.Element {
           {/* Bottom Row: AI Report */}
           <div className="w-full">
             <AnalysisReport
+              key={activeFiling?.accessionNumber || activeTicker}
               ticker={activeTicker}
               activeFiling={activeFiling}
-              analysis={reportData}
+              analysis={analysis}
               isAnalyzing={isAnalyzing}
               error={analysisError}
               onAnalyze={(hp, ap) => {
-                setHasPosition(hp);
-                setAvgPrice(ap);
-                handleAnalyze(filings, filing10K, filing10Q, filingsForm4, hp, ap);
+                handleAnalyze(hp, ap);
               }}
             />
           </div>

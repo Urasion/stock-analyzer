@@ -3,17 +3,7 @@ import { FundamentalsInput } from '@/app/api/sec/analyze/prompts';
 
 const yahooFinance = new YahooFinance();
 
-interface ExtendedBalanceSheetStatement {
-  cashCashEquivalentsAndShortTermInvestments?: number;
-  cashAndCashEquivalents?: number;
-  [key: string]: unknown;
-}
 
-interface ExtendedCashflowStatement {
-  operatingCashFlow?: number;
-  capitalExpenditures?: number;
-  [key: string]: unknown;
-}
 
 export async function getFundamentalsData(ticker: string): Promise<FundamentalsInput | null> {
   const upperTicker = ticker.toUpperCase();
@@ -97,35 +87,22 @@ export async function getFundamentalsData(ticker: string): Promise<FundamentalsI
       epsAverage: (summary.calendarEvents?.earnings?.epsAverage as number | null) ?? null,
     };
 
-    // 4. 신규 유동성 지표 파싱 및 연산
-    const rawBalanceSheet = summary.balanceSheetHistoryQuarterly?.balanceSheetStatements?.[0];
-    const balanceSheet = rawBalanceSheet as unknown as ExtendedBalanceSheetStatement | undefined;
-    const cashAndEquivalents = balanceSheet?.cashCashEquivalentsAndShortTermInvestments 
-      ?? balanceSheet?.cashAndCashEquivalents 
-      ?? null;
-
-    const rawCashflows = summary.cashflowStatementHistoryQuarterly?.cashflowStatements ?? [];
-    const cashflows = rawCashflows as unknown as ExtendedCashflowStatement[];
+    // 4. 신규 유동성 지표 파싱 및 연산 (TTM 지표 활용 우회)
+    const cashAndEquivalents = summary.financialData?.totalCash ?? null;
     let cashBurnRate = null;
     let cashRunwayMonths = null;
 
-    if (cashflows.length > 0) {
-      const totalFCF = cashflows.reduce((acc, stmt) => {
-        const ocf = stmt.operatingCashFlow ?? 0;
-        const capex = stmt.capitalExpenditures ?? 0;
-        return acc + (ocf + capex);
-      }, 0);
-      const averageQuarterlyBurn = totalFCF / cashflows.length;
-      
-      // 분기 평균 FCF가 음수(현금 소모)일 때 월간 Burn Rate 환산
-      if (averageQuarterlyBurn < 0) {
-        cashBurnRate = Math.abs(averageQuarterlyBurn) / 3;
+    const freeCashflow = summary.financialData?.freeCashflow;
+    if (freeCashflow !== undefined && freeCashflow !== null) {
+      if (freeCashflow < 0) {
+        // 연간 적자 FCF를 월평균 현금 소모액으로 환산
+        cashBurnRate = Math.abs(freeCashflow) / 12;
         if (cashAndEquivalents !== null && cashAndEquivalents > 0) {
           cashRunwayMonths = cashAndEquivalents / cashBurnRate;
         }
       } else {
         cashBurnRate = 0; // 현금 순유입 상태
-        cashRunwayMonths = 999; // 사실상 런웨이 무한대 표시용 플래그
+        cashRunwayMonths = 999; // Runway 무한대
       }
     }
 

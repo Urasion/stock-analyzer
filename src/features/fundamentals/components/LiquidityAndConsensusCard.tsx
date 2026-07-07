@@ -73,10 +73,10 @@ export default function LiquidityAndConsensusCard({
                 value={
                   <span className={`font-bold ${
                     fundamentals.cashRunwayMonths && fundamentals.cashRunwayMonths < 12 
-                      ? "text-blue-400" 
+                      ? "text-rose-600 dark:text-rose-400" 
                       : fundamentals.cashRunwayMonths === 999 
-                        ? "text-rose-400" 
-                        : "text-slate-200"
+                        ? "text-blue-600 dark:text-blue-400" 
+                        : "text-slate-600 dark:text-slate-200"
                   }`}>
                     {formatRunwayMonths(fundamentals.cashRunwayMonths)}
                   </span>
@@ -106,7 +106,7 @@ export default function LiquidityAndConsensusCard({
                 label="목표가 기대 편차율 (Variance)"
                 value={
                   fundamentals.targetPriceDeviationPercent !== undefined && fundamentals.targetPriceDeviationPercent !== null ? (
-                    <span className={fundamentals.targetPriceDeviationPercent > 40 ? "text-amber-400" : "text-slate-200"}>
+                    <span className={fundamentals.targetPriceDeviationPercent > 40 ? "text-amber-600 dark:text-amber-400 font-bold" : "text-slate-600 dark:text-slate-200"}>
                       {fundamentals.targetPriceDeviationPercent.toFixed(1)}%
                     </span>
                   ) : 'N/A'

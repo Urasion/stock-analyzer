@@ -33,6 +33,20 @@ const formatRevenueWithKorean = (revStr: string | undefined | null): string => {
   return trimmed;
 };
 
+const formatPriceValue = (value: string | undefined | null, defaultValue: string): string => {
+  if (!value) return 'N/A';
+  const trimmed = value.trim();
+  if (trimmed === '0' || trimmed === '0.00') return defaultValue;
+  const isNumeric = /^[0-9.]+$/.test(trimmed);
+  if (isNumeric) {
+    const num = parseFloat(trimmed);
+    if (!isNaN(num)) {
+      return `$${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+  }
+  return trimmed;
+};
+
 
 
 const sentimentMap: Record<string, string> = {
@@ -244,13 +258,13 @@ export default function AnalysisReport({
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">추가 매수 지점</span>
                   <span className="text-xs font-extrabold text-slate-100">
-                    {analysis.judgment.positionStrategy.buyMorePrice || 'N/A'}
+                    {formatPriceValue(analysis.judgment.positionStrategy.buyMorePrice, '추가 매수 보류')}
                   </span>
                 </div>
                 <div className="flex flex-col gap-0.5">
                   <span className="text-[9px] text-slate-400 font-bold uppercase tracking-wider">장기 목표가</span>
                   <span className="text-xs font-extrabold text-slate-100">
-                    {analysis.judgment.positionStrategy.longTermTarget || 'N/A'}
+                    {formatPriceValue(analysis.judgment.positionStrategy.longTermTarget, '설정 불가')}
                   </span>
                 </div>
               </div>

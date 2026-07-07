@@ -51,6 +51,7 @@ export interface PriceMetricsInput {
   high365d: number | null;
   low365d: number | null;
   volatility365d: number | null;
+  quotes?: { date: string; close: number }[];
 }
 
 /**
@@ -163,11 +164,21 @@ export function buildAnalysisPrompt(
   let priceMetricsSection = '최근 주가 데이터 없음';
   if (priceMetrics) {
     const changeDirection = (priceMetrics.changePercent ?? 0) >= 0 ? '상승' : '하락';
+    
+    let priceTrendLines = '  - 일별 주가 데이터 없음';
+    if (priceMetrics.quotes && priceMetrics.quotes.length > 0) {
+      priceTrendLines = priceMetrics.quotes
+        .map((q) => `  - ${q.date}: $${q.close}`)
+        .join('\n');
+    }
+
     priceMetricsSection = `
 - 현재 주가: $${priceMetrics.currentPrice}
 - 최근 365일(1년/4분기) 누적 주가 변동률: ${priceMetrics.changePercent?.toFixed(2)}% (${changeDirection})
 - 최근 365일 최고가: $${priceMetrics.high365d} / 최저가: $${priceMetrics.low365d}
 - 최근 365일 주가 변동성 (평균 대비 표준편차 비율): ${priceMetrics.volatility365d?.toFixed(2)}%
+- 1년 주가 흐름 추이 (일별):
+${priceTrendLines}
 `;
   }
 

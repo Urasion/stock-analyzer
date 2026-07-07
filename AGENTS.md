@@ -41,6 +41,7 @@ Code within the project strictly follows the **Airbnb JavaScript/React Style Gui
 ## 3. Documentation Rules
 - **Implementation Plan Language**: The implementation plan (`implementation_plan.md`) must always be written in Korean.
 - **AGENTS.md Language**: Any rules or content added to `AGENTS.md` must always be written in English.
+- **API and Function Documentation**: When adding, modifying, or deleting API routes (under `src/app/api/`) or core helper functions (under `src/lib/`), you must update the documentation in [api_and_functions.md](file:///Users/jeongjiwon/projects/2026/stock-analyzer/docs/api_and_functions.md) to reflect the changes.
 
 ## 4. Type and Interface Declaration Rules
 - **Global Types**: Types or interfaces that are used across multiple features, components, or libraries must be declared in the global `src/types` directory (e.g., `src/types/index.ts`).
